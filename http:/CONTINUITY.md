@@ -23,6 +23,7 @@
   - Implemented same-sample null p-value for analytic repeatability, updated plots to show measurement-specific distributions and observed ΔNa under null.
   - Added assumptions disclaimer in Results panel (independence, Normal errors, no bias/artefacts).
   - Increased x-axis tick density and added numeric CI bound labels on plots.
+  - Updated default LoA half-widths to 2.8/2.2 (analytic) and 5.8/5.8 (sequential).
 - Done:
   - Read root instructions in `agents.md`.
   - Checked repo structure (no existing app code or docs).
@@ -41,8 +42,9 @@
   - Updated `docs/SPEC.md` and `docs/DECISIONS.md` to reflect analytic null behavior.
   - Added assumptions disclaimer text in `docs/index.html`.
   - Updated plot tick density and added CI bound labels in `docs/index.html`.
+  - Updated defaults JSONs and VARIABILITY table for new LoA values; adjusted test expectation.
 - Now:
-  - Report plot tick/CI label updates.
+  - Report default LoA updates.
 - Next:
   - None pending unless new tasks requested.
 - Open questions (UNCONFIRMED if needed):

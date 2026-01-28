@@ -8,10 +8,10 @@ local lab performance. Values below are LoA half-widths (paired measurements) in
 
 | Context | Method | LoA half-width | Source |
 | --- | --- | --- | --- |
-| Analytic repeatability | Central lab (indirect ISE) | 3.0 | Project prompt (placeholder) |
-| Analytic repeatability | i-STAT (direct ISE) | 2.0 | Project prompt (placeholder) |
-| Sequential draws | Central lab (indirect ISE) | 6.0 | Project prompt (placeholder) |
-| Sequential draws | i-STAT (direct ISE) | 6.0 | Project prompt (placeholder) |
+| Analytic repeatability | Central lab (indirect ISE) | 2.8 | Deep Research summary (placeholder) |
+| Analytic repeatability | i-STAT (direct ISE) | 2.2 | Deep Research summary (placeholder) |
+| Sequential draws | Central lab (indirect ISE) | 5.8 | Deep Research summary (placeholder) |
+| Sequential draws | i-STAT (direct ISE) | 5.8 | Deep Research summary (placeholder) |
 
 ## Notes
 - These defaults are placeholders and should be replaced with institution-specific

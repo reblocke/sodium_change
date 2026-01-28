@@ -37,4 +37,4 @@ def test_resolve_sigma_prefers_sigma_override(tmp_path: Path) -> None:
 def test_resolve_sigma_from_loa() -> None:
     data = load_defaults()
     sigma = resolve_sigma(data, "analytic_repeatability", "central_lab_indirect_ISE")
-    assert sigma == pytest.approx(loa_half_pair_to_sigma(3.0))
+    assert sigma == pytest.approx(loa_half_pair_to_sigma(2.8))
