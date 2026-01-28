@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sodium ΔNa Uncertainty Calculator</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <h1>Sodium ΔNa Uncertainty Calculator</h1>
+      <p class="subtitle">Quantify measurement uncertainty for sodium changes.</p>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <h2>Inputs</h2>
+        <div class="field-grid">
+          <label>
+            Na1 (mmol/L)
+            <input id="na1" type="number" step="0.1" value="130" />
+          </label>
+          <label>
+            Method (Na1)
+            <select id="method1">
+              <option value="central_lab_indirect_ISE">Central lab (indirect ISE)</option>
+              <option value="istat_direct_ISE">i-STAT (direct ISE)</option>
+            </select>
+          </label>
+          <label>
+            Na2 (mmol/L)
+            <input id="na2" type="number" step="0.1" value="133" />
+          </label>
+          <label>
+            Method (Na2)
+            <select id="method2">
+              <option value="central_lab_indirect_ISE">Central lab (indirect ISE)</option>
+              <option value="istat_direct_ISE">i-STAT (direct ISE)</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="field-stack">
+          <div>
+            <p class="label">Context</p>
+            <label class="radio">
+              <input type="radio" name="context" value="analytic_repeatability" checked />
+              Analytic-only (same specimen)
+            </label>
+            <label class="radio">
+              <input type="radio" name="context" value="sequential_draws" />
+              Two sequential draws
+            </label>
+          </div>
+          <label>
+            Confidence level
+            <select id="ci-level">
+              <option value="0.5">50%</option>
+              <option value="0.8">80%</option>
+              <option value="0.95" selected>95%</option>
+            </select>
+          </label>
+          <label>
+            Threshold for |ΔNa| probability (mmol/L)
+            <input id="delta-threshold" type="number" step="0.1" value="2" />
+          </label>
+        </div>
+
+        <button id="calculate" class="primary">Calculate</button>
+        <div id="errors" class="messages" role="alert"></div>
+
+        <details class="advanced">
+          <summary>Advanced settings (LoA / σ overrides)</summary>
+          <p class="hint">
+            Enter LoA half-widths for paired measurements. If a σ value is provided, it
+            overrides the LoA entry for that row.
+          </p>
+          <div class="table">
+            <div class="table-row table-head">
+              <div>Context</div>
+              <div>Method</div>
+              <div>LoA half-width (mmol/L)</div>
+              <div>σ override (mmol/L)</div>
+            </div>
+            <div class="table-row">
+              <div>Analytic repeatability</div>
+              <div>Central lab</div>
+              <div><input id="loa-analytic_repeatability-central_lab_indirect_ISE" type="number" step="0.1" /></div>
+              <div><input id="sigma-analytic_repeatability-central_lab_indirect_ISE" type="number" step="0.01" placeholder="optional" /></div>
+            </div>
+            <div class="table-row">
+              <div>Analytic repeatability</div>
+              <div>i-STAT</div>
+              <div><input id="loa-analytic_repeatability-istat_direct_ISE" type="number" step="0.1" /></div>
+              <div><input id="sigma-analytic_repeatability-istat_direct_ISE" type="number" step="0.01" placeholder="optional" /></div>
+            </div>
+            <div class="table-row">
+              <div>Sequential draws</div>
+              <div>Central lab</div>
+              <div><input id="loa-sequential_draws-central_lab_indirect_ISE" type="number" step="0.1" /></div>
+              <div><input id="sigma-sequential_draws-central_lab_indirect_ISE" type="number" step="0.01" placeholder="optional" /></div>
+            </div>
+            <div class="table-row">
+              <div>Sequential draws</div>
+              <div>i-STAT</div>
+              <div><input id="loa-sequential_draws-istat_direct_ISE" type="number" step="0.1" /></div>
+              <div><input id="sigma-sequential_draws-istat_direct_ISE" type="number" step="0.01" placeholder="optional" /></div>
+            </div>
+          </div>
+
+          <div class="advanced-actions">
+            <button id="reset-defaults" type="button">Reset to defaults</button>
+            <button id="export-json" type="button">Export JSON</button>
+            <button id="import-json" type="button">Import JSON</button>
+          </div>
+          <textarea id="params-json" rows="6" placeholder="Paste parameter JSON here."></textarea>
+          <div id="params-status" class="messages"></div>
+        </details>
+      </section>
+
+      <section class="panel">
+        <h2>Results</h2>
+        <div class="results">
+          <p><strong>Observed ΔNa:</strong> <span id="observed-delta">—</span></p>
+          <p>
+            <strong>Plausible true ΔNa interval (<span id="ci-level-display">95%</span>):</strong>
+            <span id="delta-ci">—</span>
+          </p>
+          <p><strong>ΔNa SD:</strong> <span id="delta-sd">—</span></p>
+          <p><strong>P(ΔNa &gt; 0):</strong> <span id="delta-gt-zero">—</span></p>
+          <p>
+            <strong>P(|ΔNa| &gt; threshold):</strong>
+            <span id="delta-abs-threshold">—</span>
+          </p>
+          <div id="analytic-note" class="note"></div>
+        </div>
+        <div class="results-grid">
+          <div>
+            <h3>True Na1</h3>
+            <p>Mean: <span id="na1-mean">—</span></p>
+            <p>SD: <span id="na1-sd">—</span></p>
+            <p>CI: <span id="na1-ci">—</span></p>
+          </div>
+          <div>
+            <h3>True Na2</h3>
+            <p>Mean: <span id="na2-mean">—</span></p>
+            <p>SD: <span id="na2-sd">—</span></p>
+            <p>CI: <span id="na2-ci">—</span></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Distributions</h2>
+        <div class="plot-grid">
+          <div>
+            <h3>True Na1</h3>
+            <canvas id="plot-na1" width="320" height="200"></canvas>
+          </div>
+          <div>
+            <h3>True Na2</h3>
+            <canvas id="plot-na2" width="320" height="200"></canvas>
+          </div>
+          <div>
+            <h3>True ΔNa</h3>
+            <canvas id="plot-delta" width="320" height="200"></canvas>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <section class="disclaimer">
+      <p>
+        This tool is educational and not medical advice. It assumes independent normal
+        measurement errors and uses limits of agreement you provide or edit. It does not
+        correct for systematic bias or preanalytic artifacts unless you include them.
+      </p>
+    </section>
+
+    <noscript>This app requires JavaScript.</noscript>
+
+    <script>
+      const STORAGE_KEY = "sodium_uncertainty_params";
+      const METHODS = ["central_lab_indirect_ISE", "istat_direct_ISE"];
+      const CONTEXTS = ["analytic_repeatability", "sequential_draws"];
+      let pyodideReady;
+      let computeFromJson;
+
+      const setText = (id, value) => {
+        document.getElementById(id).textContent = value;
+      };
+
+      const formatNumber = (value, digits = 2) => {
+        if (value === null || value === undefined || Number.isNaN(value)) {
+          return "—";
+        }
+        return Number.parseFloat(value).toFixed(digits);
+      };
+
+      const showMessages = (id, messages) => {
+        const container = document.getElementById(id);
+        if (!messages || messages.length === 0) {
+          container.textContent = "";
+          return;
+        }
+        container.innerHTML = messages.map((msg) => `<div>${msg}</div>`).join("");
+      };
+
+      const getContextValue = () =>
+        document.querySelector("input[name=\"context\"]:checked").value;
+
+      const applyParamsToInputs = (params) => {
+        CONTEXTS.forEach((context) => {
+          METHODS.forEach((method) => {
+            const entry = params.defaults[context][method];
+            document.getElementById(`loa-${context}-${method}`).value = entry.loa_half_pair ?? "";
+            document.getElementById(`sigma-${context}-${method}`).value = entry.sigma ?? "";
+          });
+        });
+      };
+
+      const collectParamsFromInputs = () => {
+        const params = {
+          version: 1,
+          units: "mmol/L",
+          defaults: {
+            analytic_repeatability: {},
+            sequential_draws: {},
+          },
+        };
+        CONTEXTS.forEach((context) => {
+          METHODS.forEach((method) => {
+            const loaValue = document.getElementById(`loa-${context}-${method}`).value;
+            const sigmaValue = document.getElementById(`sigma-${context}-${method}`).value;
+            const entry = { loa_half_pair: loaValue === "" ? null : Number(loaValue) };
+            if (sigmaValue !== "") {
+              entry.sigma = Number(sigmaValue);
+            }
+            params.defaults[context][method] = entry;
+          });
+        });
+        return params;
+      };
+
+      const loadParams = async () => {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          return JSON.parse(stored);
+        }
+        const response = await fetch("variability_defaults.json");
+        return response.json();
+      };
+
+      const saveParams = (params) => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(params));
+      };
+
+      const drawCurve = (canvasId, curve, mean, ciLow, ciHigh) => {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const padding = 24;
+        const xs = curve.x;
+        const ys = curve.y;
+        const xMin = Math.min(...xs);
+        const xMax = Math.max(...xs);
+        const yMax = Math.max(...ys, 0.001);
+
+        const scaleX = (x) =>
+          padding + ((x - xMin) / (xMax - xMin)) * (canvas.width - 2 * padding);
+        const scaleY = (y) =>
+          canvas.height - padding - (y / yMax) * (canvas.height - 2 * padding);
+
+        ctx.strokeStyle = "#cbd5f5";
+        ctx.beginPath();
+        ctx.moveTo(padding, canvas.height - padding);
+        ctx.lineTo(canvas.width - padding, canvas.height - padding);
+        ctx.stroke();
+
+        ctx.strokeStyle = "#1f6feb";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        xs.forEach((x, index) => {
+          const y = ys[index];
+          if (index === 0) {
+            ctx.moveTo(scaleX(x), scaleY(y));
+          } else {
+            ctx.lineTo(scaleX(x), scaleY(y));
+          }
+        });
+        ctx.stroke();
+
+        const drawLine = (value, color) => {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(scaleX(value), padding);
+          ctx.lineTo(scaleX(value), canvas.height - padding);
+          ctx.stroke();
+        };
+
+        drawLine(mean, "#111827");
+        drawLine(ciLow, "#6b7280");
+        drawLine(ciHigh, "#6b7280");
+      };
+
+      const updateResults = (result) => {
+        setText("observed-delta", formatNumber(result.observed_delta, 1));
+        setText("ci-level-display", `${Math.round(result.ci_level * 100)}%`);
+        setText(
+          "delta-ci",
+          `[${formatNumber(result.delta_true.ci_low, 1)}, ${formatNumber(
+            result.delta_true.ci_high,
+            1,
+          )}]`,
+        );
+        setText("delta-sd", formatNumber(result.delta_true.sd, 2));
+        setText("delta-gt-zero", formatNumber(result.probabilities.delta_gt_zero, 2));
+        setText(
+          "delta-abs-threshold",
+          formatNumber(result.probabilities.delta_abs_gt_threshold, 2),
+        );
+
+        setText("na1-mean", formatNumber(result.na1.mean, 1));
+        setText("na1-sd", formatNumber(result.na1.sd, 2));
+        setText(
+          "na1-ci",
+          `[${formatNumber(result.na1.ci_low, 1)}, ${formatNumber(result.na1.ci_high, 1)}]`,
+        );
+        setText("na2-mean", formatNumber(result.na2.mean, 1));
+        setText("na2-sd", formatNumber(result.na2.sd, 2));
+        setText(
+          "na2-ci",
+          `[${formatNumber(result.na2.ci_low, 1)}, ${formatNumber(result.na2.ci_high, 1)}]`,
+        );
+
+        if (result.context === "analytic_repeatability") {
+          const note = `Same-specimen assumption: true ΔNa is 0. Measurement-noise SD for the observed ΔNa is ${formatNumber(
+            result.delta_observed.sd,
+            2,
+          )}.`;
+          document.getElementById("analytic-note").textContent = note;
+        } else {
+          document.getElementById("analytic-note").textContent = "";
+        }
+
+        drawCurve("plot-na1", result.curves.na1, result.na1.mean, result.na1.ci_low, result.na1.ci_high);
+        drawCurve("plot-na2", result.curves.na2, result.na2.mean, result.na2.ci_low, result.na2.ci_high);
+        drawCurve(
+          "plot-delta",
+          result.curves.delta_true,
+          result.delta_true.mean,
+          result.delta_true.ci_low,
+          result.delta_true.ci_high,
+        );
+      };
+
+      const calculate = async () => {
+        showMessages("errors", []);
+        const params = collectParamsFromInputs();
+        const payload = {
+          y1: Number(document.getElementById("na1").value),
+          y2: Number(document.getElementById("na2").value),
+          method1: document.getElementById("method1").value,
+          method2: document.getElementById("method2").value,
+          context: getContextValue(),
+          ci_level: Number(document.getElementById("ci-level").value),
+          threshold: Number(document.getElementById("delta-threshold").value),
+          params,
+        };
+        saveParams(params);
+        try {
+          const resultJson = computeFromJson(JSON.stringify(payload));
+          const result = JSON.parse(resultJson);
+          const messages = [
+            ...result.errors,
+            ...(result.warnings || []).map((item) => `Warning: ${item}`),
+          ];
+          showMessages("errors", messages);
+          if (result.errors.length === 0) {
+            updateResults(result);
+          }
+        } catch (error) {
+          showMessages("errors", [`Computation error: ${error}`]);
+        }
+      };
+
+      const init = async () => {
+        pyodideReady = await loadPyodide({
+          indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.1/full/",
+        });
+        const packageFiles = [
+          "sodium_uncertainty/__init__.py",
+          "sodium_uncertainty/model.py",
+          "sodium_uncertainty/types.py",
+          "sodium_uncertainty/defaults.py",
+        ];
+        pyodideReady.FS.mkdirTree("/home/pyodide/sodium_uncertainty");
+        for (const file of packageFiles) {
+          const content = await (await fetch(file)).text();
+          pyodideReady.FS.writeFile(`/home/pyodide/${file}`, content);
+        }
+        pyodideReady.runPython('import sys; sys.path.append("/home/pyodide")');
+        const appCode = await (await fetch("app.py")).text();
+        pyodideReady.runPython(appCode);
+        computeFromJson = pyodideReady.globals.get("compute_from_json");
+
+        const params = await loadParams();
+        applyParamsToInputs(params);
+        showMessages("params-status", ["Defaults loaded."]);
+
+        document.getElementById("calculate").addEventListener("click", calculate);
+        document.getElementById("reset-defaults").addEventListener("click", async () => {
+          const fresh = await (await fetch("variability_defaults.json")).json();
+          applyParamsToInputs(fresh);
+          saveParams(fresh);
+          showMessages("params-status", ["Defaults restored."]);
+        });
+        document.getElementById("export-json").addEventListener("click", () => {
+          const params = collectParamsFromInputs();
+          document.getElementById("params-json").value = JSON.stringify(params, null, 2);
+          showMessages("params-status", ["Parameters exported to JSON."]);
+        });
+        document.getElementById("import-json").addEventListener("click", () => {
+          const raw = document.getElementById("params-json").value;
+          try {
+            const parsed = JSON.parse(raw);
+            applyParamsToInputs(parsed);
+            saveParams(parsed);
+            showMessages("params-status", ["Parameters imported."]);
+          } catch (error) {
+            showMessages("params-status", [`Import failed: ${error}`]);
+          }
+        });
+
+        calculate();
+      };
+
+      init();
+    </script>
+  </body>
+</html>

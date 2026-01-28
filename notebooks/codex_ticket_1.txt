@@ -1,0 +1,356 @@
+# Codex Implementation Ticket: Sodium Δ Uncertainty Calculator (GitHub Pages, Python)
+
+## Summary
+
+Build a **static, client-side app** (hosted on **GitHub Pages**) that accepts **two sodium results** and returns an **uncertainty-aware interval** for the **true change (ΔNa)** using **user-selectable limits of agreement (LoA)** and the assumption of **uncorrelated errors**.
+
+The app must:
+
+* Support **per-measurement method selection** (e.g., **Central Lab (indirect ISE)** vs **i-STAT (direct ISE)**) for each sodium value.
+* Support a context toggle:
+
+  * **Analytic repeatability (same specimen / analytic-only variability)** vs
+  * **Two sequential draws (includes draw-to-draw variability)**.
+* Use **LoA-derived uncertainty** to compute a **distribution for each “true Na”** and a **distribution for ΔNa**, with **configurable CI level** (default 95%).
+* Provide **visualizations** (bell-curve style distributions) for Na1, Na2, and ΔNa.
+* Allow users to **override variability parameters** (LoA / SD) to match local lab performance.
+
+---
+
+## Goals
+
+1. **Input**
+
+   * Na1 (mmol/L), Na2 (mmol/L)
+   * Method for Na1: `Central lab (indirect ISE)` or `i-STAT (direct ISE)` (optionally add `Blood gas (direct ISE)` later)
+   * Method for Na2: same choices
+   * Context toggle: `Analytic-only` vs `Sequential draws`
+   * Advanced: user-editable uncertainty parameters (LoA and/or SD)
+
+2. **Output**
+
+   * Observed Δ = Na2 − Na1
+   * **Uncertainty interval for true ΔNa** (default **95%**; allow 50/80/95 or a slider)
+   * **Distributions**:
+
+     * True Na1 | observed Na1
+     * True Na2 | observed Na2
+     * True ΔNa | observed Na1, Na2
+   * Display summary stats:
+
+     * mean, SD, and CI bounds for Na1, Na2, ΔNa
+     * optional: probability(ΔNa > 0), probability(|ΔNa| > threshold)
+
+3. **Hosting**
+
+   * Must run fully on **GitHub Pages** (no server).
+   * Must be implemented in **Python** (run client-side via **Pyodide/PyScript**).
+
+---
+
+## Non-goals (explicitly out of scope for v1)
+
+* Modeling **systematic bias** between methods (direct vs indirect ISE) beyond user-supplied parameters.
+* Modeling correlation between errors (user explicitly wants uncorrelated).
+* Modeling heteroscedastic error that depends on Na concentration unless user provides a function/table (v2 idea).
+* Inferring physiology or assuming a prior on “true change” beyond the measurement model.
+
+---
+
+## Statistical Model (core)
+
+### Definitions
+
+* Observed values: **y1**, **y2** (entered sodium results)
+* Latent true values: **T1**, **T2**
+* Measurement error: **e1**, **e2**
+
+Assume:
+
+* y1 = T1 + e1
+* y2 = T2 + e2
+* e1 ~ Normal(0, σ1²), e2 ~ Normal(0, σ2²)
+* Errors are **uncorrelated**
+
+### Using LoA to get σ per measurement
+
+Users provide (or defaults provide) **95% limits of agreement half-width** for *paired repeat measurements* under a context+method:
+
+* LoA_half ≡ **L** (in mmol/L), interpreted as: paired differences fall in **±L** for 95% of pairs.
+
+Under independent normal errors with equal per-measurement SD:
+
+* SD(diff) = √2 · σ
+* 95% LoA half-width: L = 1.96 · SD(diff) = 1.96 · √2 · σ
+* Therefore: **σ = L / (1.96 · √2)**
+
+Implementation note: allow users to enter either:
+
+* **LoA_half (paired)** and convert to σ, or
+* **σ (per measurement)** directly.
+
+### Posterior for each true Na given an observation
+
+User asked for “no assumptions about underlying changes” and “each reading as information about true Na.”
+
+Use an **uninformative (flat) prior** on T:
+
+* T1 | y1 ~ Normal(y1, σ1²)
+* T2 | y2 ~ Normal(y2, σ2²)
+
+### Distribution for true change ΔNa
+
+Δ ≡ T2 − T1
+
+Since the difference of normals is normal:
+
+* Δ | (y1, y2) ~ Normal( (y2 − y1),  σΔ² )
+* where σΔ² = σ1² + σ2²
+
+CI at confidence level (1 − α):
+
+* z = NormalQuantile(1 − α/2)
+* CI = (Δ_mean − z·σΔ,  Δ_mean + z·σΔ)
+
+### Monte Carlo (optional)
+
+Provide MC sampling for visualization and for cross-checking:
+
+* Sample T1 ~ N(y1, σ1²), T2 ~ N(y2, σ2²)
+* Compute Δ = T2 − T1 for N samples (default N=50k)
+* Compare MC quantiles to analytic CI (should match closely)
+
+---
+
+## UX / UI Requirements
+
+### Layout (single-page)
+
+1. **Inputs panel**
+
+   * Na1 numeric input (mmol/L)
+   * Na1 method dropdown
+   * Na2 numeric input (mmol/L)
+   * Na2 method dropdown
+   * Context toggle (radio or checkbox):
+
+     * “Analytic-only (same specimen)”
+     * “Two sequential draws (includes draw-to-draw variability)”
+   * Confidence level selector:
+
+     * dropdown: 50%, 80%, 95% (default 95%)
+     * optional slider for 50–99%
+
+2. **Results panel**
+
+   * Observed ΔNa
+   * “Plausible true ΔNa interval (X%)”: [lower, upper]
+   * Show SD(ΔNa)
+   * Optional:
+
+     * P(ΔNa > 0)
+     * P(|ΔNa| > k) with user-set k (default 2 mmol/L)
+
+3. **Plots**
+
+   * Three plots (tabs or stacked):
+
+     * True Na1 distribution
+     * True Na2 distribution
+     * True ΔNa distribution
+   * Each plot shows:
+
+     * PDF curve (bell curve)
+     * vertical lines for mean and CI bounds
+     * optional shaded CI region
+
+4. **Advanced settings (collapsible)**
+
+   * Editable uncertainty parameters:
+
+     * For each **method × context**, allow entry of:
+
+       * LoA_half (paired, mmol/L) OR per-measurement σ
+     * Reset to defaults button
+     * Export/Import parameters as JSON
+   * Persistence:
+
+     * store edited params in **localStorage** so settings persist across visits
+
+5. **Disclaimers (always visible, brief)**
+
+   * Normality + independence assumption
+   * LoA meaning depends on local lab/platform
+   * Not correcting for systematic method bias or preanalytic artifacts unless user encodes them in parameters
+
+---
+
+## Default Parameters (v1)
+
+Provide defaults as **editable placeholders** (do not overclaim “universal truth” in UI copy). Suggested initial values:
+
+```json
+{
+  "version": 1,
+  "units": "mmol/L",
+  "defaults": {
+    "analytic_repeatability": {
+      "central_lab_indirect_ISE": { "loa_half_pair": 3.0 },
+      "istat_direct_ISE":        { "loa_half_pair": 2.0 }
+    },
+    "sequential_draws": {
+      "central_lab_indirect_ISE": { "loa_half_pair": 6.0 },
+      "istat_direct_ISE":         { "loa_half_pair": 6.0 }
+    }
+  }
+}
+```
+
+Notes:
+
+* These are starting defaults only; users can override.
+* If later adding “blood gas direct ISE”, add it as another method key.
+
+---
+
+## Technical Approach (GitHub Pages + Python)
+
+### Constraint
+
+GitHub Pages is static; Python must run in-browser via **Pyodide**. Recommended wrapper: **PyScript** (or direct Pyodide + JS).
+
+### Proposed stack
+
+* `index.html` (UI)
+* `styles.css` (minimal styling)
+* `app.py` (core Python logic + glue)
+* `params_default.json` (default uncertainty parameters)
+* `params_schema.json` (optional schema / validation rules)
+* Plotting: **Plotly.js** (JS) for rendering; Python produces curve data arrays.
+
+### Quantiles without SciPy
+
+Use Python stdlib:
+
+* `statistics.NormalDist().inv_cdf(p)` for z-values
+
+No SciPy dependency required.
+
+---
+
+## Implementation Details
+
+### Core functions (Python)
+
+* `loa_half_pair_to_sigma(loa_half: float) -> float`
+
+  * returns `loa_half / (1.96 * sqrt(2))`
+* `sigma_to_loa_half_pair(sigma: float) -> float`
+
+  * returns `1.96 * sqrt(2) * sigma` (for display)
+* `compute_distributions(y1, y2, sigma1, sigma2, ci_level) -> dict`
+
+  * returns means, sds, ci bounds for T1, T2, Δ
+* `pdf_normal(x, mean, sd) -> float`
+* `make_curve(mean, sd, n=400, span_sd=4) -> {x:[], y:[]}`
+* `validate_inputs(...) -> list[str]` warnings/errors
+
+### Event flow
+
+* On “Calculate”:
+
+  * read Na1/Na2/method/context/ci_level
+  * resolve σ1/σ2 from parameter store (default or local override)
+  * compute analytic results for T1/T2/Δ
+  * generate curve points
+  * call Plotly render/update
+
+### Parameter resolution logic
+
+Given:
+
+* `context ∈ {analytic_repeatability, sequential_draws}`
+* `method ∈ {central_lab_indirect_ISE, istat_direct_ISE}`
+  Return `loa_half_pair` (or `sigma`) from params.
+* If user set sigma explicitly, use it.
+* Else compute sigma from LoA.
+
+### Input validation rules
+
+* Na inputs must be numeric and within a sensible range (warn outside 100–170; do not block)
+* LoA and σ must be positive
+* CI level must be in (0, 1)
+
+### Output formatting
+
+* Show values rounded to 1 decimal (configurable)
+* Show SDs to 2 decimals
+
+---
+
+## File/Repo Structure (GitHub Pages)
+
+Option A (recommended): serve from `/docs`
+
+```
+repo/
+  docs/
+    index.html
+    styles.css
+    app.py
+    params_default.json
+    assets/
+  README.md
+```
+
+In repo settings: GitHub Pages source = `main` branch `/docs`.
+
+---
+
+## Acceptance Criteria
+
+1. App loads on GitHub Pages with no server dependencies.
+2. User can enter Na1/Na2, choose method for each, choose context, click Calculate, and see:
+
+   * ΔNa point estimate
+   * ΔNa CI at selected confidence level
+   * Distributions for Na1, Na2, and ΔNa rendered as bell curves.
+3. Advanced settings allow editing LoA/σ parameters and those changes affect results immediately.
+4. Parameters persist across refresh via localStorage and can be reset to defaults.
+5. Analytical CI matches Monte Carlo CI (if MC is implemented) within small tolerance (e.g., ±0.1 mmol/L).
+6. App fails gracefully with inline error messages for invalid inputs (no blank page / JS console spam).
+
+---
+
+## Test Cases (must include)
+
+1. **Same method, analytic-only**
+
+   * Na1=130, Na2=133, both central lab, LoA_half_pair=3.0
+   * Expect Δ mean = 3.0
+   * Since both σ equal, Δ 95% half-width should be ~3.0 (by construction)
+   * CI ~ [0.0, 6.0]
+
+2. **Mixed methods**
+
+   * Na1=130 (central), Na2=133 (i-STAT)
+   * With LoA_half central=3.0, i-STAT=2.0
+   * CI half-width should be <3.0 and >2.0 (because variance adds)
+
+3. **Sequential draws wider uncertainty**
+
+   * Same Na inputs as case #1 but sequential context LoA_half=6.0
+   * CI should widen to ~±6.0
+
+4. **Invalid parameter**
+
+   * LoA_half ≤ 0 should show an error and not compute.
+
+---
+
+## Future Enhancements (v2+)
+
+* Add “Blood gas direct ISE” as a third method.
+* Optional user input for **systematic bias** between methods (offset term).
+* Support heteroscedastic σ(Na) with piecewise table.
+* Add “probability true Δ exceeds clinically relevant threshold” with user-defined threshold.

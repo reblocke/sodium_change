@@ -1,0 +1,31 @@
+- Goal (incl. success criteria):
+  - Build a static GitHub Pages app (docs/) that computes uncertainty-aware ΔNa from two sodium values with method selection, context toggle, analytic CI, visualizations, and editable defaults; unit tests for core Python.
+- Constraints/Assumptions:
+  - Client-side only; Python via Pyodide/PyScript; no PHI; minimal deps; normal/independent errors; LoA default conversion; no physiologic priors.
+  - Follow authority order docs/SPEC.md then docs/VARIABILITY.md + data defaults; create missing docs as needed.
+- Key decisions:
+  - Use lightweight canvas plotting (no external chart libs).
+  - Mirror `src/sodium_uncertainty` into `docs/` for Pyodide imports.
+  - Interpret analytic-repeatability ΔNa as identically 0.
+- State:
+  - Core model, defaults, tests, and docs UI scaffolding created.
+- Done:
+  - Read root instructions in `agents.md`.
+  - Checked repo structure (no existing app code or docs).
+  - Added core model package, defaults JSON, tests, and docs UI.
+  - Attempted `pytest` (not available in environment).
+- Now:
+  - Review implementation for completeness; tests pending environment with pytest.
+- Next:
+  - Run `pytest` in an environment with pytest available.
+  - Provide user walkthrough and next steps.
+- Open questions (UNCONFIRMED if needed):
+  - UNCONFIRMED: None.
+- Working set (files/ids/commands):
+  - `http://CONTINUITY.md`
+  - `src/sodium_uncertainty/model.py`
+  - `src/sodium_uncertainty/defaults.py`
+  - `docs/index.html`
+  - `docs/app.py`
+  - `docs/SPEC.md`
+  - `tests/test_model.py`

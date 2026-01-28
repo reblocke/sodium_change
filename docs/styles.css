@@ -1,0 +1,174 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  margin: 0;
+  background: #f5f7fb;
+  color: #111827;
+}
+
+.site-header {
+  padding: 24px 32px 8px;
+  background: #111827;
+  color: #f9fafb;
+}
+
+.site-header h1 {
+  margin: 0 0 6px;
+  font-size: 24px;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #d1d5db;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 24px 32px;
+}
+
+.panel {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.field-stack {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+
+input,
+select,
+textarea {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+}
+
+.radio {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+}
+
+.primary {
+  margin-top: 16px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.messages {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #b91c1c;
+}
+
+.advanced {
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.table {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.table-head {
+  font-weight: 600;
+  font-size: 13px;
+  color: #374151;
+}
+
+.advanced-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.advanced-actions button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  cursor: pointer;
+}
+
+.results {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.plot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.plot-grid canvas {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.disclaimer {
+  padding: 16px 32px 32px;
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.note {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #1f2937;
+}
+
+.hint {
+  font-size: 12px;
+  color: #6b7280;
+}

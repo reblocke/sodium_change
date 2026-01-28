@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "units": "mmol/L",
+  "defaults": {
+    "analytic_repeatability": {
+      "central_lab_indirect_ISE": {
+        "loa_half_pair": 3.0
+      },
+      "istat_direct_ISE": {
+        "loa_half_pair": 2.0
+      }
+    },
+    "sequential_draws": {
+      "central_lab_indirect_ISE": {
+        "loa_half_pair": 6.0
+      },
+      "istat_direct_ISE": {
+        "loa_half_pair": 6.0
+      }
+    }
+  }
+}
