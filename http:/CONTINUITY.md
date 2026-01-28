@@ -18,6 +18,7 @@
   - Repo-local `.cache/pre-commit` created for pre-commit HOME and contains log.
   - User reran `PRE_COMMIT_HOME=.cache/pre-commit .venv/bin/pre-commit install`; hook now present at `.git/hooks/pre-commit`.
   - Added `.cache/` to `.gitignore`.
+  - README updated with project description, local run instructions, and GitHub Pages hosting steps.
 - Done:
   - Read root instructions in `agents.md`.
   - Checked repo structure (no existing app code or docs).
@@ -27,8 +28,9 @@
   - Ran pytest/ruff/pre-commit per request; pytest passed, ruff fixed and now clean; pre-commit install failed due to `.git/hooks` write permissions.
   - User successfully installed pre-commit hook.
   - Updated `.gitignore` to ignore `.cache/`.
+  - Rewrote `README.md` with project overview and usage instructions.
 - Now:
-  - Report pre-commit hook installed and `.gitignore` update.
+  - Report README update.
 - Next:
   - None pending unless new tasks requested.
 - Open questions (UNCONFIRMED if needed):
