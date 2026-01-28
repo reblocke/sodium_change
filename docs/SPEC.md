@@ -11,12 +11,14 @@ two sodium measurements. The app runs on GitHub Pages and uses in-browser Python
   - Analytic repeatability (same specimen, analytic-only variability)
   - Sequential draws (two samples)
 - Confidence interval level (default 95%)
+- Optional toggle: scale σ with Na (assume constant CV, Na_ref = 140)
 - Advanced settings: LoA half-widths or per-measurement σ overrides
 
 ## Measurement model
 - Observed sodium values are noisy measurements of latent true values with independent
   normal errors.
 - LoA half-widths represent paired differences for two independent measurements.
+- Optional CV scaling: when enabled, σ is multiplied by (Na / Na_ref).
 - For sequential draws: true ΔNa distribution is Normal with mean (Na2 − Na1) and variance
   σ1² + σ2².
 - For analytic repeatability: a single true value is estimated from both measurements;

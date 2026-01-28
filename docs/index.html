@@ -67,6 +67,16 @@
             <input id="delta-threshold" type="number" step="0.1" value="2" />
           </label>
         </div>
+        <div class="field-stack">
+          <label class="checkbox">
+            <input id="scale-with-na" type="checkbox" />
+            Scale σ with Na (assume constant CV)
+          </label>
+          <label>
+            Reference Na for scaling (mmol/L)
+            <input id="na-ref" type="number" step="1" value="140" />
+          </label>
+        </div>
 
         <button id="calculate" class="primary">Calculate</button>
         <div id="errors" class="messages" role="alert"></div>
@@ -157,7 +167,8 @@
         <p class="hint">
           Assumptions: independent (uncorrelated) measurement errors, Normal error model, and
           variability parameters that apply to your setting. Results do not account for systematic
-          bias, preanalytic artifacts, or physiologic priors.
+          bias, preanalytic artifacts, or physiologic priors. Optional CV scaling assumes σ grows
+          linearly with Na relative to the chosen reference.
         </p>
       </section>
 
@@ -601,6 +612,8 @@
           context: getContextValue(),
           ci_level: Number(document.getElementById("ci-level").value),
           threshold: Number(document.getElementById("delta-threshold").value),
+          scale_with_na: document.getElementById("scale-with-na").checked,
+          na_ref: Number(document.getElementById("na-ref").value),
           params,
         };
         saveParams(params);

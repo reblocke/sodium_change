@@ -27,6 +27,7 @@
   - User reports GitHub Pages build: Calculate does nothing; advanced settings blank/uneditable on hosted site (works locally).
   - Added init error banner + runtime error handlers and .nojekyll guard for Pages.
   - GitHub Pages console: 404s for resource(s); Pyodide error shows HTML 404 page loaded as `sodium_uncertainty/__init__.py` (SyntaxError from `.container` CSS).
+  - Added optional "scale σ with Na" toggle (constant CV) with Na_ref input and app-side scaling.
 - Done:
   - Read root instructions in `agents.md`.
   - Checked repo structure (no existing app code or docs).
@@ -48,8 +49,9 @@
   - Updated defaults JSONs and VARIABILITY table for new LoA values; adjusted test expectation.
   - Added error banner UI and init error handling in `docs/index.html`.
   - Added `docs/.nojekyll`.
+  - Added UI controls for Na-dependent σ scaling and implemented scaling in `docs/app.py`; updated SPEC/DECISIONS and disclaimer text.
 - Now:
-  - Provide DevTools steps and confirm hosted errors/banners.
+  - Report Na-dependent σ scaling toggle addition.
 - Next:
   - None pending unless new tasks requested.
 - Open questions (UNCONFIRMED if needed):

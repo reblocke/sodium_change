@@ -20,3 +20,8 @@ should stay in sync with the core package.
 ## Pyodide delivery
 Pyodide is loaded from the official CDN to keep the repository lightweight. Offline usage
 requires the assets to be cached by the browser or bundled separately.
+
+## Na-dependent σ toggle
+An optional "scale σ with Na" toggle assumes constant CV by scaling σ linearly with Na
+relative to a reference value (default 140 mmol/L). This provides an opt-in heteroscedastic
+model without committing to device-specific curves.

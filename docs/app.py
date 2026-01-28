@@ -52,6 +52,8 @@ def compute_from_json(payload_json: str) -> str:
     y2 = _parse_float(payload.get("y2"), "Na2", errors)
     ci_level = _parse_float(payload.get("ci_level"), "CI level", errors)
     threshold = _parse_float(payload.get("threshold"), "Threshold", errors)
+    scale_with_na = payload.get("scale_with_na", False)
+    na_ref = _parse_float(payload.get("na_ref", 140), "Reference Na", errors)
 
     if y1 is not None and (y1 < 100 or y1 > 170):
         warnings.append("Na1 is outside typical physiologic ranges.")
@@ -61,6 +63,8 @@ def compute_from_json(payload_json: str) -> str:
         errors.append("CI level must be between 0 and 1.")
     if threshold is not None and threshold < 0:
         errors.append("Threshold must be non-negative.")
+    if na_ref is not None and na_ref <= 0:
+        errors.append("Reference Na must be positive.")
 
     if errors:
         return json.dumps({"errors": errors, "warnings": warnings})
@@ -75,6 +79,10 @@ def compute_from_json(payload_json: str) -> str:
         sigma2 = resolve_sigma(params, context, method2)
     except Exception as exc:  # noqa: BLE001
         return json.dumps({"errors": [str(exc)], "warnings": warnings})
+
+    if scale_with_na:
+        sigma1 *= y1 / na_ref
+        sigma2 *= y2 / na_ref
 
     try:
         if context == "analytic_repeatability":
