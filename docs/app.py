@@ -5,8 +5,10 @@ from sodium_uncertainty.defaults import resolve_sigma
 from sodium_uncertainty.model import (
     make_curve,
     normal_cdf,
+    normal_ci,
     posterior_same_sample,
     posterior_sequential_draws,
+    same_sample_p_value,
 )
 
 
@@ -30,6 +32,15 @@ def _probability_abs_gt_threshold(mean: float, sd: float, threshold: float) -> f
     upper = 1 - normal_cdf(threshold, mean, sd)
     lower = normal_cdf(-threshold, mean, sd)
     return upper + lower
+
+
+def _intervals(mean: float, sd: float) -> list[dict[str, float]]:
+    levels = (0.5, 0.95, 0.99)
+    intervals = []
+    for level in levels:
+        low, high = normal_ci(mean, sd, level)
+        intervals.append({"level": level, "low": low, "high": high})
+    return intervals
 
 
 def compute_from_json(payload_json: str) -> str:
@@ -84,6 +95,9 @@ def compute_from_json(payload_json: str) -> str:
             result.delta_true.sd,
             threshold,
         ),
+        "same_sample_p": same_sample_p_value(y1, y2, sigma1, sigma2)
+        if context == "analytic_repeatability"
+        else None,
     }
 
     curves = {
@@ -91,12 +105,23 @@ def compute_from_json(payload_json: str) -> str:
         "na2": make_curve(result.na2.mean, result.na2.sd),
         "delta_true": make_curve(result.delta_true.mean, result.delta_true.sd),
         "delta_observed": make_curve(delta_observed.mean, delta_observed.sd),
+        "na1_obs": make_curve(y1, sigma1),
+        "na2_obs": make_curve(y2, sigma2),
+    }
+    intervals = {
+        "na1": _intervals(result.na1.mean, result.na1.sd),
+        "na2": _intervals(result.na2.mean, result.na2.sd),
+        "delta_true": _intervals(result.delta_true.mean, result.delta_true.sd),
+        "delta_observed": _intervals(delta_observed.mean, delta_observed.sd),
+        "na1_obs": _intervals(y1, sigma1),
+        "na2_obs": _intervals(y2, sigma2),
     }
 
     return json.dumps(
         {
             "errors": [],
             "warnings": warnings,
+            "inputs": {"y1": y1, "y2": y2, "sigma1": sigma1, "sigma2": sigma2},
             "context": context,
             "ci_level": ci_level,
             "observed_delta": result.observed_delta,
@@ -106,5 +131,6 @@ def compute_from_json(payload_json: str) -> str:
             "delta_observed": delta_observed.__dict__,
             "probabilities": probabilities,
             "curves": curves,
+            "intervals": intervals,
         }
     )

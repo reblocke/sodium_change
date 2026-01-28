@@ -2,8 +2,9 @@
 
 ## Analytic repeatability interpretation
 The analytic repeatability scenario assumes a single true sodium for both measurements, so
-true ΔNa is identically 0. The UI also reports the expected observed difference distribution
-from measurement noise. The ticket test case referencing ΔNa = 3 mmol/L was interpreted as
+true ΔNa is identically 0. The UI reports the expected observed ΔNa distribution from
+measurement noise and a two-sided tail probability P(|ΔNa| ≥ observed | same sample) as the
+null-hypothesis check. The ticket test case referencing ΔNa = 3 mmol/L was interpreted as
 applying to sequential draws to preserve this requirement.
 
 ## Plotting approach

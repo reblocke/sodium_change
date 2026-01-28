@@ -19,6 +19,10 @@
   - User reran `PRE_COMMIT_HOME=.cache/pre-commit .venv/bin/pre-commit install`; hook now present at `.git/hooks/pre-commit`.
   - Added `.cache/` to `.gitignore`.
   - README updated with project description, local run instructions, and GitHub Pages hosting steps.
+  - Added plot x-axis ticks/labels and shaded 50/95/99% intervals in distribution canvases; app now returns interval data from `docs/app.py`.
+  - Implemented same-sample null p-value for analytic repeatability, updated plots to show measurement-specific distributions and observed ΔNa under null.
+  - Added assumptions disclaimer in Results panel (independence, Normal errors, no bias/artefacts).
+  - Increased x-axis tick density and added numeric CI bound labels on plots.
 - Done:
   - Read root instructions in `agents.md`.
   - Checked repo structure (no existing app code or docs).
@@ -29,8 +33,16 @@
   - User successfully installed pre-commit hook.
   - Updated `.gitignore` to ignore `.cache/`.
   - Rewrote `README.md` with project overview and usage instructions.
+  - Updated `docs/app.py` to compute 50/95/99% intervals.
+  - Updated `docs/index.html` to draw x-axis scales and confidence bands on plots.
+  - Added `same_sample_p_value` to core model and tests.
+  - Updated `docs/app.py` to return same-sample p-value and measurement-specific curves/intervals.
+  - Updated `docs/index.html` to show same-sample probability, hide sequential-only stats in analytic mode, and draw observed ΔNa line.
+  - Updated `docs/SPEC.md` and `docs/DECISIONS.md` to reflect analytic null behavior.
+  - Added assumptions disclaimer text in `docs/index.html`.
+  - Updated plot tick density and added CI bound labels in `docs/index.html`.
 - Now:
-  - Report README update.
+  - Report plot tick/CI label updates.
 - Next:
   - None pending unless new tasks requested.
 - Open questions (UNCONFIRMED if needed):

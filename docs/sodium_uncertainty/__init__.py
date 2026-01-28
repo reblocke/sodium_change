@@ -9,6 +9,7 @@ from .model import (
     normal_pdf,
     posterior_same_sample,
     posterior_sequential_draws,
+    same_sample_p_value,
     sigma_to_loa_half_pair,
     summarize_normal,
 )
@@ -26,6 +27,7 @@ __all__ = [
     "normal_pdf",
     "posterior_same_sample",
     "posterior_sequential_draws",
+    "same_sample_p_value",
     "sigma_to_loa_half_pair",
     "summarize_normal",
 ]

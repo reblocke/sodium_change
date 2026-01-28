@@ -112,6 +112,17 @@ def normal_cdf(x: float, mean: float, sd: float) -> float:
     return NormalDist(mu=mean, sigma=sd).cdf(x)
 
 
+def same_sample_p_value(y1: float, y2: float, sigma1: float, sigma2: float) -> float:
+    if sigma1 <= 0 or sigma2 <= 0:
+        raise ValueError("Sigma values must be positive.")
+    delta = y2 - y1
+    sd = math.sqrt(sigma1**2 + sigma2**2)
+    if sd == 0:
+        return 1.0 if delta == 0 else 0.0
+    p_value = 2 * (1 - normal_cdf(abs(delta), 0.0, sd))
+    return max(0.0, min(1.0, p_value))
+
+
 def clamp_curve_bounds(values: Iterable[float]) -> tuple[float, float]:
     values = list(values)
     if not values:

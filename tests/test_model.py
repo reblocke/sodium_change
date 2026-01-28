@@ -1,4 +1,5 @@
 import math
+from statistics import NormalDist
 
 import pytest
 
@@ -6,6 +7,7 @@ from sodium_uncertainty.model import (
     loa_half_pair_to_sigma,
     posterior_same_sample,
     posterior_sequential_draws,
+    same_sample_p_value,
     sigma_to_loa_half_pair,
 )
 
@@ -47,6 +49,17 @@ def test_analytic_repeatability_delta_true_zero() -> None:
     assert result.delta_true.sd == pytest.approx(0.0)
     assert result.delta_observed is not None
     assert result.delta_observed.sd == pytest.approx(math.sqrt(2) * sigma)
+
+
+def test_same_sample_p_value() -> None:
+    sigma = 1.0
+    p_value_zero = same_sample_p_value(130.0, 130.0, sigma, sigma)
+    assert p_value_zero == pytest.approx(1.0)
+    delta = 2.0
+    sd = math.sqrt(2) * sigma
+    expected = 2 * (1 - NormalDist().cdf(abs(delta) / sd))
+    p_value = same_sample_p_value(130.0, 132.0, sigma, sigma)
+    assert p_value == pytest.approx(expected)
 
 
 def test_invalid_loa_raises() -> None:
