@@ -4,8 +4,8 @@ from .defaults import load_defaults, resolve_sigma
 from .model import (
     loa_half_pair_to_sigma,
     make_curve,
-    normal_ci,
     normal_cdf,
+    normal_ci,
     normal_pdf,
     posterior_same_sample,
     posterior_sequential_draws,

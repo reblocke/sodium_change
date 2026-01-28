@@ -1,6 +1,6 @@
 import math
+from collections.abc import Iterable
 from statistics import NormalDist
-from typing import Iterable
 
 from .types import NormalSummary, ScenarioResult
 

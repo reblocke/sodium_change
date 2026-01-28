@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -16,4 +15,4 @@ class ScenarioResult:
     na2: NormalSummary
     delta_true: NormalSummary
     observed_delta: float
-    delta_observed: Optional[NormalSummary] = None
+    delta_observed: NormalSummary | None = None

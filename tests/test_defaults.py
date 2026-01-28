@@ -1,6 +1,6 @@
+import json
 from pathlib import Path
 
-import json
 import pytest
 
 from sodium_uncertainty.defaults import load_defaults, resolve_sigma
@@ -27,7 +27,11 @@ def test_resolve_sigma_prefers_sigma_override(tmp_path: Path) -> None:
     path = tmp_path / "defaults.json"
     path.write_text(json.dumps(payload))
     data = load_defaults(path)
-    assert resolve_sigma(data, "analytic_repeatability", "central_lab_indirect_ISE") == pytest.approx(1.2)
+    assert resolve_sigma(
+        data,
+        "analytic_repeatability",
+        "central_lab_indirect_ISE",
+    ) == pytest.approx(1.2)
 
 
 def test_resolve_sigma_from_loa() -> None:

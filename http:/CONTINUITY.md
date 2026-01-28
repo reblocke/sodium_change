@@ -9,20 +9,38 @@
   - Interpret analytic-repeatability ΔNa as identically 0.
 - State:
   - Core model, defaults, tests, and docs UI scaffolding created.
+  - Pytest error reported: TypeError for `str | Path | None` in `defaults.py` indicates Python <3.10 in venv.
+  - `python3.11` not found; system `python3` is 3.9.6; brew is available.
+  - Installed Python 3.11 via Homebrew, recreated `.venv`, installed pytest, and tests now pass.
+  - Full dev toolchain installed into `.venv` (ruff, pre-commit, ipykernel, jupyter, numpy, pandas, matplotlib, pyarrow); initial pip run timed out then completed.
+  - Ran pytest (10 passed). Ruff found 8 issues, then auto-fixed and manually wrapped one long line; ruff now passes.
+  - `pre-commit install` with repo-local cache failed due to permission writing `.git/hooks/pre-commit`; confirmed `touch .git/hooks/pre-commit` fails (Operation not permitted).
+  - Repo-local `.cache/pre-commit` created for pre-commit HOME and contains log.
+  - User reran `PRE_COMMIT_HOME=.cache/pre-commit .venv/bin/pre-commit install`; hook now present at `.git/hooks/pre-commit`.
+  - Added `.cache/` to `.gitignore`.
 - Done:
   - Read root instructions in `agents.md`.
   - Checked repo structure (no existing app code or docs).
   - Added core model package, defaults JSON, tests, and docs UI.
   - Attempted `pytest` (not available in environment).
+  - Installed Python 3.11 (Homebrew), recreated `.venv`, ran pytest successfully.
+  - Ran pytest/ruff/pre-commit per request; pytest passed, ruff fixed and now clean; pre-commit install failed due to `.git/hooks` write permissions.
+  - User successfully installed pre-commit hook.
+  - Updated `.gitignore` to ignore `.cache/`.
 - Now:
-  - Review implementation for completeness; tests pending environment with pytest.
+  - Report pre-commit hook installed and `.gitignore` update.
 - Next:
-  - Run `pytest` in an environment with pytest available.
-  - Provide user walkthrough and next steps.
+  - None pending unless new tasks requested.
 - Open questions (UNCONFIRMED if needed):
   - UNCONFIRMED: None.
 - Working set (files/ids/commands):
   - `http://CONTINUITY.md`
+  - `python3.11 -V` (not found)
+  - `python3 -V` (3.9.6)
+  - `/opt/homebrew/bin/python3.11 -m venv .venv`
+  - `.venv/bin/pip install pytest`
+  - `.venv/bin/pytest` (10 passed)
+  - `.venv/bin/pip install ruff pytest pre-commit ipykernel jupyter numpy pandas matplotlib pyarrow` (completed)
   - `src/sodium_uncertainty/model.py`
   - `src/sodium_uncertainty/defaults.py`
   - `docs/index.html`
