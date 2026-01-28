@@ -24,6 +24,9 @@
   - Added assumptions disclaimer in Results panel (independence, Normal errors, no bias/artefacts).
   - Increased x-axis tick density and added numeric CI bound labels on plots.
   - Updated default LoA half-widths to 2.8/2.2 (analytic) and 5.8/5.8 (sequential).
+  - User reports GitHub Pages build: Calculate does nothing; advanced settings blank/uneditable on hosted site (works locally).
+  - Added init error banner + runtime error handlers and .nojekyll guard for Pages.
+  - GitHub Pages console: 404s for resource(s); Pyodide error shows HTML 404 page loaded as `sodium_uncertainty/__init__.py` (SyntaxError from `.container` CSS).
 - Done:
   - Read root instructions in `agents.md`.
   - Checked repo structure (no existing app code or docs).
@@ -43,12 +46,14 @@
   - Added assumptions disclaimer text in `docs/index.html`.
   - Updated plot tick density and added CI bound labels in `docs/index.html`.
   - Updated defaults JSONs and VARIABILITY table for new LoA values; adjusted test expectation.
+  - Added error banner UI and init error handling in `docs/index.html`.
+  - Added `docs/.nojekyll`.
 - Now:
-  - Report default LoA updates.
+  - Provide DevTools steps and confirm hosted errors/banners.
 - Next:
   - None pending unless new tasks requested.
 - Open questions (UNCONFIRMED if needed):
-  - UNCONFIRMED: None.
+  - UNCONFIRMED: Whether GitHub Pages source is set to `/docs` and whether `docs/sodium_uncertainty` + `docs/variability_defaults.json` are committed and reachable at the Pages URL.
 - Working set (files/ids/commands):
   - `http://CONTINUITY.md`
   - `python3.11 -V` (not found)

@@ -14,6 +14,7 @@
     </header>
 
     <main class="layout">
+      <div id="banner" class="banner" style="display: none;"></div>
       <section class="panel">
         <h2>Inputs</h2>
         <div class="field-grid">
@@ -214,6 +215,18 @@
           return;
         }
         container.innerHTML = messages.map((msg) => `<div>${msg}</div>`).join("");
+      };
+
+      const showBanner = (message) => {
+        const banner = document.getElementById("banner");
+        banner.textContent = message;
+        banner.style.display = "block";
+      };
+
+      const clearBanner = () => {
+        const banner = document.getElementById("banner");
+        banner.textContent = "";
+        banner.style.display = "none";
       };
 
       const getContextValue = () =>
@@ -578,6 +591,7 @@
 
       const calculate = async () => {
         showMessages("errors", []);
+        clearBanner();
         const params = collectParamsFromInputs();
         const payload = {
           y1: Number(document.getElementById("na1").value),
@@ -607,55 +621,84 @@
       };
 
       const init = async () => {
-        pyodideReady = await loadPyodide({
-          indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.1/full/",
-        });
-        const packageFiles = [
-          "sodium_uncertainty/__init__.py",
-          "sodium_uncertainty/model.py",
-          "sodium_uncertainty/types.py",
-          "sodium_uncertainty/defaults.py",
-        ];
-        pyodideReady.FS.mkdirTree("/home/pyodide/sodium_uncertainty");
-        for (const file of packageFiles) {
-          const content = await (await fetch(file)).text();
-          pyodideReady.FS.writeFile(`/home/pyodide/${file}`, content);
-        }
-        pyodideReady.runPython('import sys; sys.path.append("/home/pyodide")');
-        const appCode = await (await fetch("app.py")).text();
-        pyodideReady.runPython(appCode);
-        computeFromJson = pyodideReady.globals.get("compute_from_json");
-
-        const params = await loadParams();
-        applyParamsToInputs(params);
-        showMessages("params-status", ["Defaults loaded."]);
-
-        document.getElementById("calculate").addEventListener("click", calculate);
-        document.getElementById("reset-defaults").addEventListener("click", async () => {
-          const fresh = await (await fetch("variability_defaults.json")).json();
-          applyParamsToInputs(fresh);
-          saveParams(fresh);
-          showMessages("params-status", ["Defaults restored."]);
-        });
-        document.getElementById("export-json").addEventListener("click", () => {
-          const params = collectParamsFromInputs();
-          document.getElementById("params-json").value = JSON.stringify(params, null, 2);
-          showMessages("params-status", ["Parameters exported to JSON."]);
-        });
-        document.getElementById("import-json").addEventListener("click", () => {
-          const raw = document.getElementById("params-json").value;
-          try {
-            const parsed = JSON.parse(raw);
-            applyParamsToInputs(parsed);
-            saveParams(parsed);
-            showMessages("params-status", ["Parameters imported."]);
-          } catch (error) {
-            showMessages("params-status", [`Import failed: ${error}`]);
+        try {
+          pyodideReady = await loadPyodide({
+            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.1/full/",
+          });
+          const packageFiles = [
+            "sodium_uncertainty/__init__.py",
+            "sodium_uncertainty/model.py",
+            "sodium_uncertainty/types.py",
+            "sodium_uncertainty/defaults.py",
+          ];
+          pyodideReady.FS.mkdirTree("/home/pyodide/sodium_uncertainty");
+          for (const file of packageFiles) {
+            const response = await fetch(file);
+            if (!response.ok) {
+              throw new Error(`Failed to load ${file}: ${response.status}`);
+            }
+            const content = await response.text();
+            pyodideReady.FS.writeFile(`/home/pyodide/${file}`, content);
           }
-        });
+          pyodideReady.runPython('import sys; sys.path.append("/home/pyodide")');
+          const appResponse = await fetch("app.py");
+          if (!appResponse.ok) {
+            throw new Error(`Failed to load app.py: ${appResponse.status}`);
+          }
+          const appCode = await appResponse.text();
+          pyodideReady.runPython(appCode);
+          computeFromJson = pyodideReady.globals.get("compute_from_json");
 
-        calculate();
+          const params = await loadParams();
+          applyParamsToInputs(params);
+          showMessages("params-status", ["Defaults loaded."]);
+
+          document.getElementById("calculate").addEventListener("click", calculate);
+          document.getElementById("reset-defaults").addEventListener("click", async () => {
+            const freshResponse = await fetch("variability_defaults.json");
+            if (!freshResponse.ok) {
+              showMessages("params-status", [
+                `Defaults load failed: ${freshResponse.status} (variability_defaults.json)`,
+              ]);
+              return;
+            }
+            const fresh = await freshResponse.json();
+            applyParamsToInputs(fresh);
+            saveParams(fresh);
+            showMessages("params-status", ["Defaults restored."]);
+          });
+          document.getElementById("export-json").addEventListener("click", () => {
+            const params = collectParamsFromInputs();
+            document.getElementById("params-json").value = JSON.stringify(params, null, 2);
+            showMessages("params-status", ["Parameters exported to JSON."]);
+          });
+          document.getElementById("import-json").addEventListener("click", () => {
+            const raw = document.getElementById("params-json").value;
+            try {
+              const parsed = JSON.parse(raw);
+              applyParamsToInputs(parsed);
+              saveParams(parsed);
+              showMessages("params-status", ["Parameters imported."]);
+            } catch (error) {
+              showMessages("params-status", [`Import failed: ${error}`]);
+            }
+          });
+
+          calculate();
+        } catch (error) {
+          showBanner(
+            `Initialization failed: ${error}. Check that app.py, variability_defaults.json, and sodium_uncertainty/*.py are reachable on GitHub Pages.`,
+          );
+        }
       };
+
+      window.addEventListener("error", (event) => {
+        showBanner(`Runtime error: ${event.message}`);
+      });
+
+      window.addEventListener("unhandledrejection", (event) => {
+        showBanner(`Promise error: ${event.reason}`);
+      });
 
       init();
     </script>
