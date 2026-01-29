@@ -4,9 +4,11 @@ from statistics import NormalDist
 import pytest
 
 from sodium_uncertainty.model import (
+    chance_probability_under_null,
     loa_half_pair_to_sigma,
     posterior_same_sample,
     posterior_sequential_draws,
+    qualitative_bucket,
     same_sample_p_value,
     sigma_to_loa_half_pair,
 )
@@ -60,6 +62,32 @@ def test_same_sample_p_value() -> None:
     expected = 2 * (1 - NormalDist().cdf(abs(delta) / sd))
     p_value = same_sample_p_value(130.0, 132.0, sigma, sigma)
     assert p_value == pytest.approx(expected)
+
+
+def test_chance_probability_under_null() -> None:
+    sigma = 2.0
+    p_value_zero = chance_probability_under_null(0.0, sigma)
+    assert p_value_zero == pytest.approx(1.0)
+    delta = 3.0
+    expected = 2 * (1 - NormalDist().cdf(abs(delta) / sigma))
+    p_value = chance_probability_under_null(delta, sigma)
+    assert p_value == pytest.approx(expected)
+
+
+@pytest.mark.parametrize(
+    ("p_value", "key"),
+    [
+        (0.2, "common"),
+        (0.199, "plausible"),
+        (0.05, "plausible"),
+        (0.049, "uncommon"),
+        (0.01, "uncommon"),
+        (0.009, "very_unlikely"),
+    ],
+)
+def test_qualitative_bucket(p_value: float, key: str) -> None:
+    bucket_key, _label = qualitative_bucket(p_value)
+    assert bucket_key == key
 
 
 def test_invalid_loa_raises() -> None:

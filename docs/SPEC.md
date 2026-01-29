@@ -29,7 +29,9 @@ two sodium measurements. The app runs on GitHub Pages and uses in-browser Python
 ## Outputs
 - Summary statistics (mean, SD, CI) for true Na1, true Na2, and true ΔNa.
 - Observed ΔNa and optional probabilities (ΔNa &gt; 0, |ΔNa| &gt; threshold).
-- In analytic repeatability mode: P(|ΔNa| ≥ observed | same sample).
+- Chance probability under the no-change null (uses context-specific σΔ).
+- Chance probability under the no-change null, plus a qualitative interpretation label.
+- A parameter transparency panel with σ1, σ2, σΔ and LoA-derived values.
 - Plots for Na1, Na2, and ΔNa distributions.
 
 ## Implementation notes

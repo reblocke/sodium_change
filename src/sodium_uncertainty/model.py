@@ -123,6 +123,32 @@ def same_sample_p_value(y1: float, y2: float, sigma1: float, sigma2: float) -> f
     return max(0.0, min(1.0, p_value))
 
 
+def chance_probability_under_null(delta_obs: float, sigma_delta: float) -> float:
+    if sigma_delta < 0:
+        raise ValueError("Sigma delta must be non-negative.")
+    if sigma_delta == 0:
+        return 1.0 if delta_obs == 0 else 0.0
+    p_value = 2 * (1 - normal_cdf(abs(delta_obs), 0.0, sigma_delta))
+    return max(0.0, min(1.0, p_value))
+
+
+QUALITATIVE_BUCKETS: list[tuple[float, str, str]] = [
+    (0.20, "common", "Common under measurement noise"),
+    (0.05, "plausible", "Plausibly noise"),
+    (0.01, "uncommon", "Uncommon under noise"),
+    (-1.0, "very_unlikely", "Very unlikely under noise"),
+]
+
+
+def qualitative_bucket(p_value: float) -> tuple[str, str]:
+    if not 0 <= p_value <= 1:
+        raise ValueError("Probability must be between 0 and 1.")
+    for threshold, key, label in QUALITATIVE_BUCKETS:
+        if p_value >= threshold:
+            return key, label
+    return "very_unlikely", "Very unlikely under noise"
+
+
 def validate_inputs(*values: float) -> list[str]:
     errors: list[str] = []
     for value in values:

@@ -3,11 +3,13 @@ from typing import Any
 
 from sodium_uncertainty.defaults import resolve_sigma
 from sodium_uncertainty.model import (
+    chance_probability_under_null,
     make_curve,
     normal_cdf,
     normal_ci,
     posterior_same_sample,
     posterior_sequential_draws,
+    qualitative_bucket,
     same_sample_p_value,
 )
 
@@ -41,6 +43,33 @@ def _intervals(mean: float, sd: float) -> list[dict[str, float]]:
         low, high = normal_ci(mean, sd, level)
         intervals.append({"level": level, "low": low, "high": high})
     return intervals
+
+
+def _detail_entry(
+    entry: dict[str, Any],
+    sigma_used: float,
+    value: float,
+    scale_with_na: bool,
+    na_ref: float,
+) -> dict[str, Any]:
+    loa_half = entry.get("loa_half_pair")
+    sigma_override = entry.get("sigma")
+    override_used = sigma_override not in (None, "")
+    scale_factor = value / na_ref if scale_with_na else 1.0
+    sigma_raw = sigma_used / scale_factor if scale_factor != 0 else sigma_used
+    detail: dict[str, Any] = {
+        "loa_half_pair": loa_half,
+        "sigma_override": sigma_override,
+        "override_used": override_used,
+        "sigma_used": sigma_used,
+        "sigma_raw": sigma_raw,
+        "scale_factor": scale_factor,
+    }
+    if loa_half not in (None, ""):
+        sd_diff = float(loa_half) / 1.96
+        detail["sd_diff"] = sd_diff
+        detail["sigma_from_loa"] = sd_diff / (2**0.5)
+    return detail
 
 
 def compute_from_json(payload_json: str) -> str:
@@ -84,6 +113,8 @@ def compute_from_json(payload_json: str) -> str:
         sigma1 *= y1 / na_ref
         sigma2 *= y2 / na_ref
 
+    sigma_delta = (sigma1**2 + sigma2**2) ** 0.5
+
     try:
         if context == "analytic_repeatability":
             result = posterior_same_sample(y1, y2, sigma1, sigma2, ci_level)
@@ -96,6 +127,8 @@ def compute_from_json(payload_json: str) -> str:
 
     delta_observed = result.delta_observed or result.delta_true
 
+    p_chance = chance_probability_under_null(y2 - y1, sigma_delta)
+    bucket_key, bucket_label = qualitative_bucket(p_chance)
     probabilities = {
         "delta_gt_zero": _probability_gt_zero(result.delta_true.mean, result.delta_true.sd),
         "delta_abs_gt_threshold": _probability_abs_gt_threshold(
@@ -106,6 +139,9 @@ def compute_from_json(payload_json: str) -> str:
         "same_sample_p": same_sample_p_value(y1, y2, sigma1, sigma2)
         if context == "analytic_repeatability"
         else None,
+        "chance_under_null": p_chance,
+        "chance_bucket_key": bucket_key,
+        "chance_bucket_label": bucket_label,
     }
 
     curves = {
@@ -113,6 +149,7 @@ def compute_from_json(payload_json: str) -> str:
         "na2": make_curve(result.na2.mean, result.na2.sd),
         "delta_true": make_curve(result.delta_true.mean, result.delta_true.sd),
         "delta_observed": make_curve(delta_observed.mean, delta_observed.sd),
+        "delta_null": make_curve(0.0, sigma_delta),
         "na1_obs": make_curve(y1, sigma1),
         "na2_obs": make_curve(y2, sigma2),
     }
@@ -121,8 +158,25 @@ def compute_from_json(payload_json: str) -> str:
         "na2": _intervals(result.na2.mean, result.na2.sd),
         "delta_true": _intervals(result.delta_true.mean, result.delta_true.sd),
         "delta_observed": _intervals(delta_observed.mean, delta_observed.sd),
+        "delta_null": _intervals(0.0, sigma_delta),
         "na1_obs": _intervals(y1, sigma1),
         "na2_obs": _intervals(y2, sigma2),
+    }
+    details = {
+        "context": context,
+        "method1": method1,
+        "method2": method2,
+        "sigma1": sigma1,
+        "sigma2": sigma2,
+        "sigma_delta": sigma_delta,
+        "scale_with_na": scale_with_na,
+        "na_ref": na_ref,
+        "entry1": _detail_entry(
+            params["defaults"][context][method1], sigma1, y1, scale_with_na, na_ref
+        ),
+        "entry2": _detail_entry(
+            params["defaults"][context][method2], sigma2, y2, scale_with_na, na_ref
+        ),
     }
 
     return json.dumps(
@@ -132,6 +186,7 @@ def compute_from_json(payload_json: str) -> str:
             "inputs": {"y1": y1, "y2": y2, "sigma1": sigma1, "sigma2": sigma2},
             "context": context,
             "ci_level": ci_level,
+            "threshold": threshold,
             "observed_delta": result.observed_delta,
             "na1": result.na1.__dict__,
             "na2": result.na2.__dict__,
@@ -140,5 +195,6 @@ def compute_from_json(payload_json: str) -> str:
             "probabilities": probabilities,
             "curves": curves,
             "intervals": intervals,
+            "details": details,
         }
     )

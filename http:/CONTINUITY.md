@@ -1,5 +1,6 @@
 - Goal (incl. success criteria):
   - Build a static GitHub Pages app (docs/) that computes uncertainty-aware ΔNa from two sodium values with method selection, context toggle, analytic CI, visualizations, and editable defaults; unit tests for core Python.
+  - Implement BMJ-inspired interpretive framing + visualization upgrades + Background/Justification section per ticket (items 2,5,6,7,8,9 only).
 - Constraints/Assumptions:
   - Client-side only; Python via Pyodide/PyScript; no PHI; minimal deps; normal/independent errors; LoA default conversion; no physiologic priors.
   - Follow authority order docs/SPEC.md then docs/VARIABILITY.md + data defaults; create missing docs as needed.
@@ -28,6 +29,7 @@
   - Added init error banner + runtime error handlers and .nojekyll guard for Pages.
   - GitHub Pages console: 404s for resource(s); Pyodide error shows HTML 404 page loaded as `sodium_uncertainty/__init__.py` (SyntaxError from `.container` CSS).
   - Added optional "scale σ with Na" toggle (constant CV) with Na_ref input and app-side scaling.
+  - Began BMJ-inspired upgrades: added chance probability + qualitative buckets in core model, interpretation pill, details panel, Background/Justification section, and Δ plot overlay logic.
 - Done:
   - Read root instructions in `agents.md`.
   - Checked repo structure (no existing app code or docs).
@@ -50,8 +52,14 @@
   - Added error banner UI and init error handling in `docs/index.html`.
   - Added `docs/.nojekyll`.
   - Added UI controls for Na-dependent σ scaling and implemented scaling in `docs/app.py`; updated SPEC/DECISIONS and disclaimer text.
+  - Added `chance_probability_under_null` + `qualitative_bucket` helpers and tests.
+  - Updated `docs/app.py` to return chance probability, qualitative label, σ details, and delta null curve.
+  - Added Results interpretation pill, details panel, and Background/Justification section in `docs/index.html` + README.
+  - Added Δ plot overlay + tail shading and marker updates in `docs/index.html`.
+  - Updated `docs/SPEC.md` and `docs/DECISIONS.md` for new interpretation layer.
+  - Ran pytest and ruff; both pass.
 - Now:
-  - Report Na-dependent σ scaling toggle addition.
+  - Report BMJ-style upgrades completion and hosted fix reminders.
 - Next:
   - None pending unless new tasks requested.
 - Open questions (UNCONFIRMED if needed):

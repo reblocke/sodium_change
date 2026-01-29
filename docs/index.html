@@ -132,12 +132,14 @@
 
       <section class="panel">
         <h2>Results</h2>
+        <div id="interpretation-pill" class="pill" aria-live="polite"></div>
         <div class="results">
           <p><strong>Observed ΔNa:</strong> <span id="observed-delta">—</span></p>
-          <p id="same-sample-row" style="display: none;">
-            <strong>P(|ΔNa| ≥ observed | same sample):</strong>
-            <span id="same-sample-prob">—</span>
+          <p id="chance-row">
+            <strong>How often this Δ happens by chance (if true Na didn’t change):</strong>
+            <span id="chance-prob">—</span>
           </p>
+          <p id="chance-subtext" class="hint"></p>
           <p id="delta-ci-row">
             <strong>Plausible true ΔNa interval (<span id="ci-level-display">95%</span>):</strong>
             <span id="delta-ci">—</span>
@@ -164,6 +166,45 @@
             <p>CI: <span id="na2-ci">—</span></p>
           </div>
         </div>
+        <details class="details">
+          <summary>Details (parameters used)</summary>
+          <div class="details-grid">
+            <div>
+              <p><strong>Context:</strong> <span id="detail-context">—</span></p>
+              <p><strong>Na1 method:</strong> <span id="detail-method1">—</span></p>
+              <p><strong>Na2 method:</strong> <span id="detail-method2">—</span></p>
+            </div>
+            <div>
+              <p><strong>σ1:</strong> <span id="detail-sigma1">—</span></p>
+              <p><strong>σ2:</strong> <span id="detail-sigma2">—</span></p>
+              <p><strong>σΔ:</strong> <span id="detail-sigma-delta">—</span></p>
+            </div>
+          </div>
+          <div class="details-grid">
+            <div>
+              <p><strong>Na1 LoA half-width:</strong> <span id="detail-loa1">—</span></p>
+              <p><strong>Na1 SD_diff:</strong> <span id="detail-sd-diff1">—</span></p>
+              <p><strong>Na1 σ from LoA:</strong> <span id="detail-sigma-loa1">—</span></p>
+              <p><strong>Na1 σ override:</strong> <span id="detail-override1">—</span></p>
+            </div>
+            <div>
+              <p><strong>Na2 LoA half-width:</strong> <span id="detail-loa2">—</span></p>
+              <p><strong>Na2 SD_diff:</strong> <span id="detail-sd-diff2">—</span></p>
+              <p><strong>Na2 σ from LoA:</strong> <span id="detail-sigma-loa2">—</span></p>
+              <p><strong>Na2 σ override:</strong> <span id="detail-override2">—</span></p>
+            </div>
+          </div>
+          <div class="details-grid">
+            <div>
+              <p><strong>CV scaling:</strong> <span id="detail-cv-scaling">—</span></p>
+              <p><strong>Na1 scale factor:</strong> <span id="detail-scale1">—</span></p>
+              <p><strong>Na2 scale factor:</strong> <span id="detail-scale2">—</span></p>
+            </div>
+            <div>
+              <p><strong>Reference Na:</strong> <span id="detail-na-ref">—</span></p>
+            </div>
+          </div>
+        </details>
         <p class="hint">
           Assumptions: independent (uncorrelated) measurement errors, Normal error model, and
           variability parameters that apply to your setting. Results do not account for systematic
@@ -189,6 +230,52 @@
           </div>
         </div>
       </section>
+
+      <section class="panel">
+        <details class="background">
+          <summary>Background / Justification</summary>
+          <div class="background-body">
+            <p>
+              <strong>Why sodium results can “change” even when physiology doesn’t.</strong>
+              Lab results are usually displayed as a single number. That presentation encourages
+              the false idea that the measurement is exact. In reality, every clinical measurement
+              has unavoidable uncertainty, and small changes can reflect noise rather than
+              physiology.
+            </p>
+            <p>
+              <strong>Where the uncertainty comes from.</strong> Variation comes from more than
+              the analyzer. It can come from specimen collection and handling (preanalytical
+              factors), instrument imprecision (analytical factors), and true within-person
+              fluctuation (biological variation).
+            </p>
+            <p>
+              <strong>What “reference change value” means (the BMJ idea).</strong> A standard
+              way to interpret serial tests is to ask: “How big does the difference need to be
+              before it’s unlikely to be chance?” This is often framed as a reference change value
+              (RCV) based on analytical and within-subject biological variation.
+            </p>
+            <p>
+              <strong>What this tool does instead.</strong> This tool treats each sodium value as
+              a range of plausible true values consistent with the chosen limits of agreement, then
+              derives a distribution for the plausible true change (ΔNa), assuming independent
+              random errors. It can also report how often a difference this large could occur by
+              chance under “no true change.”
+            </p>
+            <p>
+              <strong>Caveats.</strong> This tool does not correct for systematic bias between
+              methods or preanalytical artifacts unless you explicitly incorporate them into the
+              parameters. Point-of-care devices often have larger analytical variation than
+              accredited central laboratory instruments, and your local lab’s performance may
+              differ from published estimates.
+            </p>
+            <p class="hint">
+              References / further reading: BMJ practice pointers on interpreting serial test
+              results provide conceptual inspiration, but the math here differs and does not use
+              biologic-variation RCV calculations.
+            </p>
+          </div>
+        </details>
+      </section>
     </main>
 
     <section class="disclaimer">
@@ -210,6 +297,36 @@
 
       const setText = (id, value) => {
         document.getElementById(id).textContent = value;
+      };
+
+      const niceStep = (rawStep) => {
+        if (!Number.isFinite(rawStep) || rawStep <= 0) {
+          return 1;
+        }
+        const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+        const normalized = rawStep / magnitude;
+        let step = 10;
+        if (normalized <= 1) {
+          step = 1;
+        } else if (normalized <= 2) {
+          step = 2;
+        } else if (normalized <= 5) {
+          step = 5;
+        }
+        return step * magnitude;
+      };
+
+      const decimalsForStep = (step) => {
+        if (step >= 1) {
+          return 0;
+        }
+        if (step >= 0.1) {
+          return 1;
+        }
+        if (step >= 0.01) {
+          return 2;
+        }
+        return 3;
       };
 
       const formatNumber = (value, digits = 2) => {
@@ -289,7 +406,14 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(params));
       };
 
-      const drawCurve = (canvasId, curve, mean, intervals, axisLabel, referenceLine = null) => {
+      const drawCurve = (
+        canvasId,
+        curve,
+        mean,
+        intervals,
+        axisLabel,
+        options = {},
+      ) => {
         const canvas = document.getElementById(canvasId);
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -313,36 +437,6 @@
           canvas.height - padding.bottom - (y / yMax) * (canvas.height - padding.top - padding.bottom);
 
         const axisY = canvas.height - padding.bottom;
-
-        const niceStep = (rawStep) => {
-          if (!Number.isFinite(rawStep) || rawStep <= 0) {
-            return 1;
-          }
-          const magnitude = 10 ** Math.floor(Math.log10(rawStep));
-          const normalized = rawStep / magnitude;
-          let step = 10;
-          if (normalized <= 1) {
-            step = 1;
-          } else if (normalized <= 2) {
-            step = 2;
-          } else if (normalized <= 5) {
-            step = 5;
-          }
-          return step * magnitude;
-        };
-
-        const decimalsForStep = (step) => {
-          if (step >= 1) {
-            return 0;
-          }
-          if (step >= 0.1) {
-            return 1;
-          }
-          if (step >= 0.01) {
-            return 2;
-          }
-          return 3;
-        };
 
         const drawAxis = () => {
           const rawStep = (xMax - xMin) / 6;
@@ -456,10 +550,46 @@
           });
         };
 
+        const drawSelectedCI = () => {
+          if (!options.selectedCI) {
+            return;
+          }
+          const { low, high } = options.selectedCI;
+          const xLow = scaleX(low);
+          const xHigh = scaleX(high);
+          ctx.fillStyle = "rgba(15, 118, 110, 0.12)";
+          ctx.fillRect(xLow, padding.top, xHigh - xLow, axisY - padding.top);
+        };
+
+        const drawMarkers = () => {
+          const markers = options.markers || [];
+          if (markers.length === 0) {
+            return;
+          }
+          ctx.font = "10px system-ui, -apple-system, Segoe UI, sans-serif";
+          markers.forEach((marker) => {
+            const x = scaleX(marker.value);
+            ctx.strokeStyle = marker.color || "#111827";
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash(marker.dashed ? [4, 4] : []);
+            ctx.beginPath();
+            ctx.moveTo(x, padding.top);
+            ctx.lineTo(x, axisY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            if (marker.label) {
+              ctx.fillStyle = marker.color || "#111827";
+              const label = marker.label;
+              ctx.fillText(label, x - ctx.measureText(label).width / 2, padding.top - 2);
+            }
+          });
+        };
+
         drawIntervals();
+        drawSelectedCI();
         drawAxis();
 
-        ctx.strokeStyle = "#1f6feb";
+        ctx.strokeStyle = options.strokeColor || "#1f6feb";
         ctx.lineWidth = 2;
         ctx.beginPath();
         xs.forEach((x, index) => {
@@ -472,23 +602,174 @@
         });
         ctx.stroke();
 
-        const drawLine = (value, color, dashed = false) => {
+        drawMarkers();
+        drawLegend();
+        drawIntervalLabels();
+      };
+
+      const drawDeltaPlot = (canvasId, posterior, nullCurve, options) => {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const padding = {
+          left: 28,
+          right: 16,
+          top: 16,
+          bottom: 32,
+        };
+        const xs = [...posterior.x, ...nullCurve.x];
+        const ys = [...posterior.y, ...nullCurve.y];
+        const xMin = Math.min(...xs);
+        const xMax = Math.max(...xs);
+        const xSpan = xMax - xMin || 1;
+        const yMax = Math.max(...ys, 0.001);
+        const scaleX = (x) =>
+          padding.left + ((x - xMin) / xSpan) * (canvas.width - padding.left - padding.right);
+        const scaleY = (y) =>
+          canvas.height - padding.bottom - (y / yMax) * (canvas.height - padding.top - padding.bottom);
+        const axisY = canvas.height - padding.bottom;
+
+        const drawAxis = () => {
+          const rawStep = (xMax - xMin) / 6;
+          const step = niceStep(rawStep);
+          const decimals = decimalsForStep(step);
+          const start = Math.ceil(xMin / step) * step;
+          const ticks = [];
+          for (let value = start; value <= xMax + step * 0.5; value += step) {
+            ticks.push(value);
+          }
+          ctx.strokeStyle = "#cbd5f5";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(padding.left, axisY);
+          ctx.lineTo(canvas.width - padding.right, axisY);
+          ctx.stroke();
+          ctx.fillStyle = "#6b7280";
+          ctx.font = "11px system-ui, -apple-system, Segoe UI, sans-serif";
+          ticks.forEach((value) => {
+            const x = scaleX(value);
+            ctx.beginPath();
+            ctx.moveTo(x, axisY);
+            ctx.lineTo(x, axisY + 4);
+            ctx.stroke();
+            const labelValue = Math.abs(value) < 1e-6 ? 0 : value;
+            const label = labelValue.toFixed(decimals);
+            ctx.fillText(label, x - ctx.measureText(label).width / 2, axisY + 16);
+          });
+          if (options.axisLabel) {
+            ctx.fillStyle = "#111827";
+            ctx.font = "12px system-ui, -apple-system, Segoe UI, sans-serif";
+            ctx.fillText(
+              options.axisLabel,
+              canvas.width / 2 - ctx.measureText(options.axisLabel).width / 2,
+              canvas.height - 4,
+            );
+          }
+        };
+
+        const drawCurveLine = (curve, color, dashed = false) => {
           ctx.strokeStyle = color;
-          ctx.lineWidth = 1.5;
+          ctx.lineWidth = 2;
           ctx.setLineDash(dashed ? [4, 4] : []);
           ctx.beginPath();
-          ctx.moveTo(scaleX(value), padding.top);
-          ctx.lineTo(scaleX(value), axisY);
+          curve.x.forEach((x, index) => {
+            const y = curve.y[index];
+            if (index === 0) {
+              ctx.moveTo(scaleX(x), scaleY(y));
+            } else {
+              ctx.lineTo(scaleX(x), scaleY(y));
+            }
+          });
           ctx.stroke();
           ctx.setLineDash([]);
         };
 
-        drawLine(mean, "#111827");
-        if (referenceLine !== null && Number.isFinite(referenceLine)) {
-          drawLine(referenceLine, "#ef4444", true);
+        const fillTail = (curve, predicate, color) => {
+          ctx.fillStyle = color;
+          let started = false;
+          ctx.beginPath();
+          curve.x.forEach((x, index) => {
+            const y = curve.y[index];
+            if (predicate(x)) {
+              if (!started) {
+                ctx.moveTo(scaleX(x), axisY);
+                ctx.lineTo(scaleX(x), scaleY(y));
+                started = true;
+              } else {
+                ctx.lineTo(scaleX(x), scaleY(y));
+              }
+            } else if (started) {
+              ctx.lineTo(scaleX(curve.x[index - 1]), axisY);
+              ctx.closePath();
+              ctx.fill();
+              started = false;
+              ctx.beginPath();
+            }
+          });
+          if (started) {
+            ctx.lineTo(scaleX(curve.x[curve.x.length - 1]), axisY);
+            ctx.closePath();
+            ctx.fill();
+          }
+        };
+
+        if (options.selectedCI) {
+          const { low, high } = options.selectedCI;
+          ctx.fillStyle = "rgba(15, 118, 110, 0.12)";
+          ctx.fillRect(scaleX(low), padding.top, scaleX(high) - scaleX(low), axisY - padding.top);
         }
-        drawLegend();
-        drawIntervalLabels();
+
+        if (options.deltaObs !== null && Number.isFinite(options.deltaObs)) {
+          const cut = Math.abs(options.deltaObs);
+          fillTail(nullCurve, (x) => x <= -cut, "rgba(239, 68, 68, 0.18)");
+          fillTail(nullCurve, (x) => x >= cut, "rgba(239, 68, 68, 0.18)");
+        }
+
+        drawAxis();
+        drawCurveLine(nullCurve, "#9ca3af", true);
+        drawCurveLine(posterior, "#1f6feb");
+
+        const markers = options.markers || [];
+        ctx.font = "10px system-ui, -apple-system, Segoe UI, sans-serif";
+        markers.forEach((marker) => {
+          const x = scaleX(marker.value);
+          ctx.strokeStyle = marker.color || "#111827";
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash(marker.dashed ? [4, 4] : []);
+          ctx.beginPath();
+          ctx.moveTo(x, padding.top);
+          ctx.lineTo(x, axisY);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          if (marker.label) {
+            ctx.fillStyle = marker.color || "#111827";
+            ctx.fillText(
+              marker.label,
+              x - ctx.measureText(marker.label).width / 2,
+              padding.top - 2,
+            );
+          }
+        });
+
+        ctx.font = "11px system-ui, -apple-system, Segoe UI, sans-serif";
+        ctx.strokeStyle = "#1f6feb";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(padding.left + 6, padding.top + 8);
+        ctx.lineTo(padding.left + 20, padding.top + 8);
+        ctx.stroke();
+        ctx.fillStyle = "#111827";
+        ctx.fillText("Plausible true Δ", padding.left + 24, padding.top + 12);
+        ctx.strokeStyle = "#9ca3af";
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(padding.left + 6, padding.top + 22);
+        ctx.lineTo(padding.left + 20, padding.top + 22);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = "#6b7280";
+        ctx.fillText("No-change (chance) Δ", padding.left + 24, padding.top + 26);
       };
 
       const updateResults = (result) => {
@@ -496,9 +777,20 @@
         const setVisible = (id, visible) => {
           document.getElementById(id).style.display = visible ? "" : "none";
         };
+        const formatMaybe = (value, digits = 2) => {
+          if (value === null || value === undefined || value === "") {
+            return "—";
+          }
+          return formatNumber(value, digits);
+        };
 
         setText("observed-delta", formatNumber(result.observed_delta, 1));
         setText("ci-level-display", `${Math.round(result.ci_level * 100)}%`);
+        setText("chance-prob", formatNumber(result.probabilities.chance_under_null, 3));
+        const chanceSubtext = isAnalytic
+          ? `Uses analytic repeatability uncertainty (σΔ=${formatNumber(result.details.sigma_delta, 2)}).`
+          : `Uses sequential draw uncertainty (σΔ=${formatNumber(result.details.sigma_delta, 2)}).`;
+        setText("chance-subtext", chanceSubtext);
         setText(
           "delta-ci",
           `[${formatNumber(result.delta_true.ci_low, 1)}, ${formatNumber(
@@ -512,13 +804,15 @@
           "delta-abs-threshold",
           formatNumber(result.probabilities.delta_abs_gt_threshold, 2),
         );
-        setText("same-sample-prob", formatNumber(result.probabilities.same_sample_p, 3));
 
-        setVisible("same-sample-row", isAnalytic);
         setVisible("delta-ci-row", !isAnalytic);
         setVisible("delta-sd-row", !isAnalytic);
         setVisible("delta-gt-zero-row", !isAnalytic);
         setVisible("delta-abs-row", !isAnalytic);
+
+        const pill = document.getElementById("interpretation-pill");
+        pill.textContent = result.probabilities.chance_bucket_label;
+        pill.className = `pill ${result.probabilities.chance_bucket_key}`;
 
         setText("na1-mean", formatNumber(result.na1.mean, 1));
         setText("na1-sd", formatNumber(result.na1.sd, 2));
@@ -533,71 +827,104 @@
           `[${formatNumber(result.na2.ci_low, 1)}, ${formatNumber(result.na2.ci_high, 1)}]`,
         );
 
+        const detail = result.details;
+        setText("detail-context", detail.context);
+        setText("detail-method1", detail.method1);
+        setText("detail-method2", detail.method2);
+        setText("detail-sigma1", formatNumber(detail.sigma1, 2));
+        setText("detail-sigma2", formatNumber(detail.sigma2, 2));
+        setText("detail-sigma-delta", formatNumber(detail.sigma_delta, 2));
+        setText("detail-loa1", formatMaybe(detail.entry1.loa_half_pair, 2));
+        setText("detail-loa2", formatMaybe(detail.entry2.loa_half_pair, 2));
+        setText("detail-sd-diff1", formatMaybe(detail.entry1.sd_diff, 2));
+        setText("detail-sd-diff2", formatMaybe(detail.entry2.sd_diff, 2));
+        setText("detail-sigma-loa1", formatMaybe(detail.entry1.sigma_from_loa, 2));
+        setText("detail-sigma-loa2", formatMaybe(detail.entry2.sigma_from_loa, 2));
+        setText(
+          "detail-override1",
+          detail.entry1.override_used
+            ? `Yes (σ=${formatNumber(detail.entry1.sigma_override, 2)})`
+            : "No",
+        );
+        setText(
+          "detail-override2",
+          detail.entry2.override_used
+            ? `Yes (σ=${formatNumber(detail.entry2.sigma_override, 2)})`
+            : "No",
+        );
+        setText("detail-cv-scaling", detail.scale_with_na ? "On" : "Off");
+        setText("detail-na-ref", formatNumber(detail.na_ref, 0));
+        setText(
+          "detail-scale1",
+          detail.scale_with_na ? formatNumber(detail.entry1.scale_factor, 3) : "—",
+        );
+        setText(
+          "detail-scale2",
+          detail.scale_with_na ? formatNumber(detail.entry2.scale_factor, 3) : "—",
+        );
+
         if (isAnalytic) {
           const note = `Same-specimen null: expected observed ΔNa SD is ${formatNumber(
             result.delta_observed.sd,
             2,
-          )}. P(|ΔNa| ≥ observed | same sample) is shown above.`;
+          )}. The chance probability shown above uses analytic repeatability uncertainty.`;
           document.getElementById("analytic-note").textContent = note;
         } else {
           document.getElementById("analytic-note").textContent = "";
         }
 
-        if (isAnalytic) {
-          document.getElementById("plot-title-na1").textContent = "Na1 likelihood (same-sample)";
-          document.getElementById("plot-title-na2").textContent = "Na2 likelihood (same-sample)";
-          document.getElementById("plot-title-delta").textContent =
-            "Observed ΔNa under same-sample null";
+        document.getElementById("plot-title-na1").textContent = "True Na1";
+        document.getElementById("plot-title-na2").textContent = "True Na2";
+        document.getElementById("plot-title-delta").textContent = "ΔNa (posterior vs no-change)";
 
-          drawCurve(
-            "plot-na1",
-            result.curves.na1_obs,
-            result.inputs.y1,
-            result.intervals?.na1_obs ?? [],
-            "mmol/L",
-          );
-          drawCurve(
-            "plot-na2",
-            result.curves.na2_obs,
-            result.inputs.y2,
-            result.intervals?.na2_obs ?? [],
-            "mmol/L",
-          );
-          drawCurve(
-            "plot-delta",
-            result.curves.delta_observed,
-            result.delta_observed.mean,
-            result.intervals?.delta_observed ?? [],
-            "ΔNa (mmol/L)",
-            result.observed_delta,
-          );
-        } else {
-          document.getElementById("plot-title-na1").textContent = "True Na1";
-          document.getElementById("plot-title-na2").textContent = "True Na2";
-          document.getElementById("plot-title-delta").textContent = "True ΔNa";
-
-          drawCurve(
-            "plot-na1",
-            result.curves.na1,
-            result.na1.mean,
-            result.intervals?.na1 ?? [],
-            "mmol/L",
-          );
-          drawCurve(
-            "plot-na2",
-            result.curves.na2,
-            result.na2.mean,
-            result.intervals?.na2 ?? [],
-            "mmol/L",
-          );
-          drawCurve(
-            "plot-delta",
-            result.curves.delta_true,
-            result.delta_true.mean,
-            result.intervals?.delta_true ?? [],
-            "ΔNa (mmol/L)",
+        drawCurve(
+          "plot-na1",
+          result.curves.na1,
+          result.na1.mean,
+          result.intervals?.na1 ?? [],
+          "mmol/L",
+          {
+            selectedCI: { low: result.na1.ci_low, high: result.na1.ci_high },
+            markers: [
+              { value: result.inputs.y1, label: "Obs", color: "#111827" },
+              { value: result.na1.ci_low, label: "CI", color: "#0f766e", dashed: true },
+              { value: result.na1.ci_high, label: "CI", color: "#0f766e", dashed: true },
+            ],
+          },
+        );
+        drawCurve(
+          "plot-na2",
+          result.curves.na2,
+          result.na2.mean,
+          result.intervals?.na2 ?? [],
+          "mmol/L",
+          {
+            selectedCI: { low: result.na2.ci_low, high: result.na2.ci_high },
+            markers: [
+              { value: result.inputs.y2, label: "Obs", color: "#111827" },
+              { value: result.na2.ci_low, label: "CI", color: "#0f766e", dashed: true },
+              { value: result.na2.ci_high, label: "CI", color: "#0f766e", dashed: true },
+            ],
+          },
+        );
+        const deltaMarkers = [
+          { value: 0, label: "0", color: "#111827" },
+          { value: result.observed_delta, label: "Obs", color: "#ef4444" },
+          { value: result.delta_true.ci_low, label: "CI", color: "#0f766e", dashed: true },
+          { value: result.delta_true.ci_high, label: "CI", color: "#0f766e", dashed: true },
+        ];
+        if (Number.isFinite(result.threshold) && result.threshold > 0) {
+          deltaMarkers.push(
+            { value: result.threshold, label: "T", color: "#6b7280", dashed: true },
+            { value: -result.threshold, label: "T", color: "#6b7280", dashed: true },
           );
         }
+        drawDeltaPlot("plot-delta", result.curves.delta_true, result.curves.delta_null, {
+          axisLabel: "ΔNa (mmol/L)",
+          deltaObs: result.observed_delta,
+          selectedCI: { low: result.delta_true.ci_low, high: result.delta_true.ci_high },
+          markers: deltaMarkers,
+        });
       };
 
       const calculate = async () => {
