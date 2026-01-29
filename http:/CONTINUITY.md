@@ -30,6 +30,7 @@
   - GitHub Pages console: 404s for resource(s); Pyodide error shows HTML 404 page loaded as `sodium_uncertainty/__init__.py` (SyntaxError from `.container` CSS).
   - Added optional "scale σ with Na" toggle (constant CV) with Na_ref input and app-side scaling.
   - Began BMJ-inspired upgrades: added chance probability + qualitative buckets in core model, interpretation pill, details panel, Background/Justification section, and Δ plot overlay logic.
+  - Moved Background/Justification into bottom banner and removed explicit “BMJ idea” wording.
 - Done:
   - Read root instructions in `agents.md`.
   - Checked repo structure (no existing app code or docs).
@@ -58,8 +59,9 @@
   - Added Δ plot overlay + tail shading and marker updates in `docs/index.html`.
   - Updated `docs/SPEC.md` and `docs/DECISIONS.md` for new interpretation layer.
   - Ran pytest and ruff; both pass.
+  - Updated `docs/index.html` and `docs/styles.css` to move Background/Justification to bottom banner; updated README wording to remove “BMJ idea”.
 - Now:
-  - Report BMJ-style upgrades completion and hosted fix reminders.
+  - Provide plot-cleanup options for overlapping distributions.
 - Next:
   - None pending unless new tasks requested.
 - Open questions (UNCONFIRMED if needed):

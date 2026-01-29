@@ -114,10 +114,10 @@ can reflect noise rather than physiology.
 from specimen collection and handling (preanalytical factors), instrument imprecision
 (analytical factors), and true within-person fluctuation (biological variation).
 
-**What “reference change value” means (the BMJ idea).** A standard way to interpret serial
-tests is to ask: “How big does the difference need to be before it’s unlikely to be chance?”
-This is often framed as a reference change value (RCV) based on analytical and within-subject
-biological variation.
+**What “reference change value” means.** A standard way to interpret serial tests is to ask:
+“How big does the difference need to be before it’s unlikely to be chance?” This is often
+framed as a reference change value (RCV) based on analytical and within-subject biological
+variation.
 
 **What this tool does instead.** This tool treats each sodium value as a range of plausible
 true values consistent with the chosen limits of agreement, then derives a distribution for
@@ -129,9 +129,9 @@ artifacts unless you explicitly incorporate them into the parameters. Point-of-c
 often have larger analytical variation than accredited central laboratory instruments, and
 your local lab’s performance may differ from published estimates.
 
-References / further reading: BMJ practice pointers on interpreting serial test results
-provide conceptual inspiration, but the math here differs and does not use biologic-variation
-RCV calculations.
+References / further reading: practice pointers on interpreting serial test results provide
+conceptual inspiration, but the math here differs and does not use biologic-variation RCV
+calculations.
 
 ## Disclaimer
 
