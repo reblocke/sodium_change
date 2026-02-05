@@ -136,3 +136,18 @@ Recommended (GitHub Pages from `docs/`):
   - and match sanity checks (e.g., wider σ ⇒ wider Δ interval).
 - Defaults are editable in the UI and persist for the session (no storage required unless explicitly added).
 - Documentation updated (`docs/SPEC.md`, `docs/VARIABILITY.md`, `docs/DECISIONS.md` as applicable).
+
+
+## Review guidelines
+Treat the following as P1 and flag in PR review:
+- Any change to math/statistical logic without tests that pin behavior.
+- Any new randomness without an explicit seed pathway or deterministic tests.
+- Any refactor that reduces readability (unclear naming, mixed concerns, hidden globals).
+- Any change that silently alters UI labels/interpretation text without updating docs.
+
+Scientific coding standards:
+- Keep the core model in `src/`; `docs/` should remain UI glue.
+- Prefer pure functions and minimize hidden state.
+- Monte Carlo code must accept an RNG/seed explicitly.
+- Add unit tests for edge cases (Na out of range, equal values, extreme deltas).
+- Document assumption changes in `docs/SPEC.md` when they affect interpretation.

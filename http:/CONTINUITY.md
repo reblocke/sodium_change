@@ -31,6 +31,13 @@
   - Added optional "scale σ with Na" toggle (constant CV) with Na_ref input and app-side scaling.
   - Began BMJ-inspired upgrades: added chance probability + qualitative buckets in core model, interpretation pill, details panel, Background/Justification section, and Δ plot overlay logic.
   - Moved Background/Justification into bottom banner and removed explicit “BMJ idea” wording.
+  - User reports shell errors: `python` and `pre-commit` commands not found when trying install/run locally.
+  - Verified environment: `.venv` exists; `.venv/bin/python` is Python 3.11.14; `.venv/bin/pre-commit` is installed (4.5.1); global `python` and `pre-commit` are not on PATH.
+  - Executed activation workflow successfully with elevated permissions: `python -V`, `pre-commit --version`, `pre-commit install`, and `pre-commit run --all-files`.
+  - Added push-only local pytest hook to `.pre-commit-config.yaml` and installed `.git/hooks/pre-push`.
+  - New request: execute locally what can be done from "rigor by default" checklist (AGENTS.md naming, CI workflows, local verification).
+  - Local rigor setup applied: added CI workflows (`pre-commit.yml`, `tests.yml`), canonicalized `AGENTS.md`, removed lowercase duplicate, and added review rubric section.
+  - Case-sensitive rename finalized in git via two-step `git mv`: tracked path is now `AGENTS.md`.
 - Done:
   - Read root instructions in `agents.md`.
   - Checked repo structure (no existing app code or docs).
@@ -60,12 +67,19 @@
   - Updated `docs/SPEC.md` and `docs/DECISIONS.md` for new interpretation layer.
   - Ran pytest and ruff; both pass.
   - Updated `docs/index.html` and `docs/styles.css` to move Background/Justification to bottom banner; updated README wording to remove “BMJ idea”.
+  - Checked local executables and confirmed missing shell PATH entries are the immediate issue.
+  - Installed git hook (`.git/hooks/pre-commit`) and ran all pre-commit hooks; all hooks passed.
+  - Installed pre-push hook and verified `pre-commit run --all-files --hook-stage pre-push` passes, including `pytest (push only)`.
+  - Created `.github/workflows/pre-commit.yml` and `.github/workflows/tests.yml`.
+  - Restored and updated `AGENTS.md`; removed `agents.md` duplicate.
+  - Ran local checks: `pre-commit run --all-files` and `pytest -q`, both passing.
+  - Verified checks again after rename/config updates; pre-commit hooks and pytest still pass.
 - Now:
-  - Provide plot-cleanup options for overlapping distributions.
+  - Report completed local changes and separate remaining GitHub UI actions.
 - Next:
   - None pending unless new tasks requested.
 - Open questions (UNCONFIRMED if needed):
-  - UNCONFIRMED: Whether GitHub Pages source is set to `/docs` and whether `docs/sodium_uncertainty` + `docs/variability_defaults.json` are committed and reachable at the Pages URL.
+  - UNCONFIRMED: Whether to migrate CI install step to `pip install -e .[dev]` after dev extras are defined in `pyproject.toml`.
 - Working set (files/ids/commands):
   - `http://CONTINUITY.md`
   - `python3.11 -V` (not found)
