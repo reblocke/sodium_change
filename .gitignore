@@ -13,8 +13,9 @@ __pycache__/
 *.env
 
 # Data (keep raw data out of git)
-data/
+data/*
 !data/.gitkeep
+!data/variability_defaults.json
 
 # Build/artifacts
 dist/
