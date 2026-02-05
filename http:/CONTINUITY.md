@@ -38,6 +38,8 @@
   - New request: execute locally what can be done from "rigor by default" checklist (AGENTS.md naming, CI workflows, local verification).
   - Local rigor setup applied: added CI workflows (`pre-commit.yml`, `tests.yml`), canonicalized `AGENTS.md`, removed lowercase duplicate, and added review rubric section.
   - Case-sensitive rename finalized in git via two-step `git mv`: tracked path is now `AGENTS.md`.
+  - CI test failure diagnosed: `load_defaults()` cannot find `data/variability_defaults.json` in GitHub Actions checkout because file is ignored/not tracked.
+  - `.gitignore` updated to allow tracking defaults file (`data/*` with explicit unignore for `.gitkeep` and `variability_defaults.json`).
 - Done:
   - Read root instructions in `agents.md`.
   - Checked repo structure (no existing app code or docs).
@@ -74,12 +76,13 @@
   - Restored and updated `AGENTS.md`; removed `agents.md` duplicate.
   - Ran local checks: `pre-commit run --all-files` and `pytest -q`, both passing.
   - Verified checks again after rename/config updates; pre-commit hooks and pytest still pass.
+  - Re-ran local pytest after `.gitignore` fix; tests pass locally.
 - Now:
-  - Report completed local changes and separate remaining GitHub UI actions.
+  - Report CI failure root cause and exact add/commit steps to include defaults file in repo.
 - Next:
   - None pending unless new tasks requested.
 - Open questions (UNCONFIRMED if needed):
-  - UNCONFIRMED: Whether to migrate CI install step to `pip install -e .[dev]` after dev extras are defined in `pyproject.toml`.
+  - UNCONFIRMED: Whether both `data/.gitkeep` and `data/variability_defaults.json` should be tracked, or only `data/variability_defaults.json`.
 - Working set (files/ids/commands):
   - `http://CONTINUITY.md`
   - `python3.11 -V` (not found)
