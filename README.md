@@ -26,17 +26,16 @@ Option A: open the static page directly
 
 - Open `docs/index.html` in your browser.
 
-Option B: run a simple local web server (recommended for Pyodide caching)
+Option B: run the documented local web server target (recommended for Pyodide caching)
 
 ```bash
-cd docs
-python -m http.server 8000
+make serve
 ```
 
 Then open:
 
 ```text
-http://localhost:8000
+http://127.0.0.1:8000
 ```
 
 ## Local dev setup (Python core + tests)
@@ -62,11 +61,17 @@ Run checks/tests:
 make verify
 ```
 
+`make verify` stages the browser Python package, checks formatting, runs lint, and runs tests.
+
 Install pre-commit hooks:
 
 ```bash
 PRE_COMMIT_HOME=.cache/pre-commit pre-commit install
+PRE_COMMIT_HOME=.cache/pre-commit pre-commit install --hook-type pre-push
 ```
+
+The commit hook keeps formatting and lint checks local. The pre-push hook runs `make test` so
+pushes are gated without slowing every commit.
 
 ## Hosted version (GitHub Pages)
 
@@ -85,7 +90,7 @@ https://<github-username>.github.io/<repo-name>/
 ## Repository layout
 
 ```
-├── docs/                     # GitHub Pages site (index.html + app.py)
+├── docs/                     # GitHub Pages site (index.html + app.py shim)
 ├── src/sodium_uncertainty/   # Core model (pure Python, testable)
 ├── scripts/stage_docs_python.py # Mirrors src package into docs/ for Pyodide
 ├── data/                     # Default variability values (JSON)

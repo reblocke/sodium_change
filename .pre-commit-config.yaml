@@ -16,7 +16,7 @@ repos:
     hooks:
       - id: pytest-on-push
         name: pytest (push only)
-        entry: .venv/bin/pytest -q
+        entry: make test
         language: system
         pass_filenames: false
         always_run: true

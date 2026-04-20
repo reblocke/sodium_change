@@ -36,7 +36,7 @@ two sodium measurements. The app runs on GitHub Pages and uses in-browser Python
 
 ## Implementation notes
 - Core math lives in `src/sodium_uncertainty/` and is unit-tested.
-- Browser UI loads Pyodide, passes inputs to Python (`docs/app.py`), and renders charts in
-  JavaScript.
+- Browser UI loads Pyodide, passes inputs through `docs/app.py` to the staged
+  `sodium_uncertainty.calculator` package module, and renders charts in JavaScript.
 - Default parameters are sourced from `data/variability_defaults.json` and copied to
   `docs/variability_defaults.json` for the browser.

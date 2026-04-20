@@ -1,5 +1,6 @@
 """Core sodium uncertainty model utilities."""
 
+from .calculator import compute_from_json, compute_payload
 from .defaults import load_defaults, resolve_sigma
 from .model import (
     chance_probability_under_null,
@@ -20,6 +21,8 @@ from .types import NormalSummary, ScenarioResult
 __all__ = [
     "NormalSummary",
     "ScenarioResult",
+    "compute_from_json",
+    "compute_payload",
     "load_defaults",
     "resolve_sigma",
     "chance_probability_under_null",
