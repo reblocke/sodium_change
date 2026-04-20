@@ -59,8 +59,7 @@ pip install \"ruff>=0.6\" \"pytest>=8\" \"pre-commit>=3\" ipykernel jupyter nump
 Run checks/tests:
 
 ```bash
-ruff check .
-pytest -q
+make verify
 ```
 
 Install pre-commit hooks:
@@ -88,6 +87,7 @@ https://<github-username>.github.io/<repo-name>/
 ```
 ├── docs/                     # GitHub Pages site (index.html + app.py)
 ├── src/sodium_uncertainty/   # Core model (pure Python, testable)
+├── scripts/stage_docs_python.py # Mirrors src package into docs/ for Pyodide
 ├── data/                     # Default variability values (JSON)
 ├── tests/                    # Unit tests
 ├── environment.yml           # Dev environment (conda/mamba)

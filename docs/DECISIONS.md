@@ -29,3 +29,12 @@ model without committing to device-specific curves.
 ## BMJ-style interpretation layer
 The app adds a qualitative interpretation label based on the no-change chance probability.
 This is a communication layer only and does not alter the quantitative model.
+
+## Workflow instructions and staged browser package
+Root agent instructions are intentionally compact. Repeated workflows live under
+`.agents/skills/`, and durable decisions live in this file or `docs/adr/`. The previous malformed
+continuity-ledger path is retired; project facts that should persist belong in repository docs.
+
+`src/sodium_uncertainty` remains the Python source of truth. `scripts/stage_docs_python.py`
+mirrors that package into `docs/sodium_uncertainty` and adjusts only the browser defaults path so
+Pyodide can load `docs/variability_defaults.json` from the GitHub Pages root.

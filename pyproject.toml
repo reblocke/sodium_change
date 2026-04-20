@@ -1,17 +1,36 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "project-title"
+name = "sodium-uncertainty"
 version = "0.1.0"
-description = "One-line description."
+description = "Static GitHub Pages app and Python core for sodium change uncertainty"
+readme = "README.md"
 requires-python = ">=3.11"
+license = {file = "LICENSE"}
+authors = [
+  {name = "Brian Locke"},
+]
 dependencies = []
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+src = ["src", "tests", "scripts"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
 ignore = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["sodium_uncertainty"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

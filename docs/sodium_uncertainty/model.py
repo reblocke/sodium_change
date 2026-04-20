@@ -149,6 +149,15 @@ def qualitative_bucket(p_value: float) -> tuple[str, str]:
     return "very_unlikely", "Very unlikely under noise"
 
 
+def validate_inputs(*values: float) -> list[str]:
+    errors: list[str] = []
+    for value in values:
+        if value is None or isinstance(value, str):
+            errors.append("Inputs must be numeric.")
+            break
+    return errors
+
+
 def clamp_curve_bounds(values: Iterable[float]) -> tuple[float, float]:
     values = list(values)
     if not values:
