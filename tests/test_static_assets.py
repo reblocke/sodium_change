@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -42,6 +43,17 @@ def test_staged_package_matches_source_package_with_browser_path_patch() -> None
         source = SRC_PACKAGE / relative_path
         staged = DOCS_PACKAGE / relative_path
         assert staged.read_text() == _expected_staged_text(source)
+
+
+def test_index_loads_every_staged_package_file_into_pyodide() -> None:
+    index_text = (ROOT / "docs" / "index.html").read_text()
+    match = re.search(r"const packageFiles = \[(.*?)\];", index_text, re.DOTALL)
+    assert match is not None
+
+    listed_files = set(re.findall(r'"([^"]+)"', match.group(1)))
+    staged_files = {f"sodium_uncertainty/{path.name}" for path in DOCS_PACKAGE.glob("*.py")}
+
+    assert staged_files <= listed_files
 
 
 def test_docs_app_compiles_and_exposes_compute_from_json() -> None:
