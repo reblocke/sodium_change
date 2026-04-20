@@ -1,32 +1,56 @@
 # Sodium ΔNa Uncertainty Calculator
 
-A static, browser-run web app that helps interpret uncertainty in the change between two sodium
-measurements. It models measurement error for common lab methods and shows distributions for
-Na1, Na2, and the true delta (ΔNa). The app runs fully client-side (Pyodide/PyScript) with no
-backend and no PHI.
+A static, browser-run educational tool for reasoning about measurement uncertainty in the
+change between two sodium results. The app models each measured sodium as a noisy observation,
+uses user-selected variability parameters, and reports distributions for plausible true Na1,
+true Na2, and true change in sodium (ΔNa).
+
+- Hosted app: <https://reblocke.github.io/sodium_change/>
+- Repository: <https://github.com/reblocke/sodium_change>
+- Package name: `sodium-uncertainty`
+- Python package: `sodium_uncertainty`
 
 ## What it does
 
-- Accepts two sodium values (mmol/L).
-- Lets you choose the measurement method for each value:
-  - Central lab BMP/CMP (indirect ISE)
-  - i-STAT / blood gas analyzer (direct ISE)
-- Supports two scenarios:
-  - Analytic repeatability (same sample measured twice)
-  - Sequential draws (two different samples)
-- Computes distributions and 95% intervals for:
-  - Na1 true
-  - Na2 true
-  - ΔNa true
-- Defaults are editable via an Advanced settings panel.
+- Accepts two sodium values in mmol/L.
+- Lets users choose the method for each result:
+  - Central lab, indirect ion-selective electrode (ISE)
+  - i-STAT/direct ISE
+- Supports two uncertainty contexts:
+  - Analytic repeatability: same specimen measured twice; true ΔNa is fixed at 0, and the app
+    reports how often the observed difference could occur from measurement noise alone.
+  - Sequential draws: two separate specimens; the app estimates a plausible true ΔNa distribution
+    with SD `sqrt(σ1² + σ2²)`.
+- Reports observed ΔNa, a no-change chance probability, qualitative interpretation label,
+  confidence intervals, and parameter details.
+- Draws distributions for Na1, Na2, and ΔNa in the browser.
+- Allows advanced LoA half-width edits, per-measurement σ overrides, JSON import/export of
+  parameters, and optional σ scaling with sodium concentration.
 
-## Local use (web app)
+## What it does not do
 
-Option A: open the static page directly
+- It does not diagnose, treat, recommend therapy, or replace clinical judgment.
+- It does not estimate physiologic priors or expected clinical direction of sodium change.
+- It does not implement biologic-variation reference change value (RCV) calculations.
+- It does not correct for systematic method bias, specimen artifacts, contamination, dilution,
+  or local analyzer calibration unless the user explicitly changes the variability parameters.
+- It does not intentionally store, transmit, or persist patient-entered sodium values.
 
-- Open `docs/index.html` in your browser.
+## Hosted use
 
-Option B: run the documented local web server target (recommended for Pyodide caching)
+Open the GitHub Pages deployment:
+
+```text
+https://reblocke.github.io/sodium_change/
+```
+
+The hosted page is served from the repository `docs/` folder. Calculations run client-side in the
+browser through Pyodide. Pyodide itself is loaded from the jsDelivr CDN, so first load requires
+network access to that CDN.
+
+## Local use
+
+Recommended local browser workflow:
 
 ```bash
 make serve
@@ -38,114 +62,156 @@ Then open:
 http://127.0.0.1:8000
 ```
 
-## Local dev setup (Python core + tests)
+The `make serve` target stages the Python package into `docs/sodium_uncertainty/` before starting a
+local static server. Avoid relying on direct `file://` opening because browser fetch behavior can
+break Pyodide asset loading.
 
-Conda/mamba (recommended by `environment.yml`):
+## Development setup
+
+Requirements:
+
+- Python 3.11
+- `make`
+- Internet access for first-time installation of Python packages and pre-commit hooks
+
+Conda/mamba setup:
 
 ```bash
 mamba env create -f environment.yml   # or: conda env create -f environment.yml
 mamba activate proj-env               # or: conda activate proj-env
 ```
 
-Or, use the repo venv (Python 3.11):
+Virtual environment setup:
 
 ```bash
-/opt/homebrew/bin/python3.11 -m venv .venv
+python3.11 -m venv .venv
 source .venv/bin/activate
-pip install \"ruff>=0.6\" \"pytest>=8\" \"pre-commit>=3\" ipykernel jupyter numpy pandas matplotlib pyarrow
+python -m pip install --upgrade pip
+python -m pip install -e . "pytest>=8" "ruff>=0.6" "pre-commit>=3"
 ```
 
-Run checks/tests:
+Useful commands:
 
 ```bash
-make verify
+make stage-docs   # copy src/sodium_uncertainty into docs/ for Pyodide
+make test         # run pytest
+make lint         # run Ruff linting
+make fmt          # format Python files with Ruff
+make fmt-check    # check formatting without rewriting files
+make verify       # stage docs, check formatting, lint, and test
+make serve        # stage docs and serve docs/ locally on port 8000
 ```
 
-`make verify` stages the browser Python package, checks formatting, runs lint, and runs tests.
-
-Install pre-commit hooks:
+Install local Git hooks:
 
 ```bash
 PRE_COMMIT_HOME=.cache/pre-commit pre-commit install
 PRE_COMMIT_HOME=.cache/pre-commit pre-commit install --hook-type pre-push
 ```
 
-The commit hook keeps formatting and lint checks local. The pre-push hook runs `make test` so
-pushes are gated without slowing every commit.
-
-## Hosted version (GitHub Pages)
-
-The app is published from the `docs/` folder. To enable hosting:
-
-1) In GitHub, go to Settings → Pages.
-2) Set Source to the `main` branch and the `/docs` folder.
-3) Save.
-
-Your published URL will be:
-
-```text
-https://<github-username>.github.io/<repo-name>/
-```
+The commit hook runs formatting/lint hygiene through pre-commit. The pre-push hook runs `make test`
+so pushes are gated without slowing every commit.
 
 ## Repository layout
 
-```
-├── docs/                     # GitHub Pages site (index.html + app.py shim)
-├── src/sodium_uncertainty/   # Core model (pure Python, testable)
-├── scripts/stage_docs_python.py # Mirrors src package into docs/ for Pyodide
-├── data/                     # Default variability values (JSON)
-├── tests/                    # Unit tests
-├── environment.yml           # Dev environment (conda/mamba)
-├── docs/SPEC.md              # Behavior and math model
-├── docs/VARIABILITY.md       # Default parameters + citations
-└── docs/DECISIONS.md         # Non-obvious choices and rationale
+```text
+├── src/sodium_uncertainty/       # Source-of-truth Python package
+├── docs/                         # GitHub Pages app and staged Pyodide package copy
+├── data/variability_defaults.json # Default LoA half-width parameters
+├── scripts/stage_docs_python.py  # Stages package/defaults into docs/
+├── tests/                        # Unit, contract, and static-staging tests
+├── .github/workflows/            # pre-commit and pytest CI workflows
+├── docs/SPEC.md                  # Measurement model and browser contract
+├── docs/VARIABILITY.md           # Default variability values and provenance limits
+├── docs/VALIDATION.md            # Current verification gates and validation limits
+├── docs/CLINICAL_SCOPE.md        # Intended educational use and non-goals
+├── docs/PRIVACY.md               # Client-side/no-persistence posture
+└── docs/DECISIONS.md             # Durable implementation and interpretation decisions
 ```
 
-## Defaults and variability
+## Default variability values
 
-- Defaults live in `data/variability_defaults.json`.
-- `docs/VARIABILITY.md` explains each default and the source/citation.
-- The model converts 95% limits of agreement into per-measurement sigma under
-  independence assumptions.
+Defaults live in `data/variability_defaults.json` and are staged to
+`docs/variability_defaults.json` for the browser. They are LoA half-widths for paired measurements
+in mmol/L.
+
+| Context | Method | LoA half-width | Implied per-measurement σ |
+| --- | --- | ---: | ---: |
+| Analytic repeatability | Central lab indirect ISE | 2.8 | 1.01 |
+| Analytic repeatability | i-STAT/direct ISE | 2.2 | 0.79 |
+| Sequential draws | Central lab indirect ISE | 5.8 | 2.09 |
+| Sequential draws | i-STAT/direct ISE | 5.8 | 2.09 |
+
+The conversion is:
+
+```text
+σ = LoA half-width / (1.96 × sqrt(2))
+```
+
+These values are project defaults for demonstration and sensitivity analysis. They are not local
+laboratory validation data and should be replaced or overridden when institution-specific
+performance data are available.
+
+## Measurement model summary
+
+The core model assumes independent, normally distributed measurement errors. For sequential draws,
+ΔNa is modeled as:
+
+```text
+Δtrue ~ Normal(Na2 - Na1, sqrt(σ1² + σ2²))
+```
+
+For analytic repeatability, the two measurements are treated as repeated measurements of the same
+specimen. The true ΔNa is therefore 0, and the reported no-change probability is the two-sided tail
+probability of observing a difference at least as large as the observed ΔNa under measurement noise.
+
+Optional constant-CV scaling multiplies each σ by:
+
+```text
+observed Na / reference Na
+```
+
+with default reference Na = 140 mmol/L.
 
 ## Background / Justification
 
-**Why sodium results can “change” even when physiology doesn’t.** Lab results are usually
-displayed as a single number. That presentation encourages the false idea that the measurement
-is exact. In reality, every clinical measurement has unavoidable uncertainty, and small changes
-can reflect noise rather than physiology.
+**Why sodium results can “change” even when physiology does not.** Lab results are usually
+displayed as a single number. That presentation encourages the false idea that the measurement is
+exact. In reality, every clinical measurement has unavoidable uncertainty, and small changes can
+reflect noise rather than physiology.
 
-**Where the uncertainty comes from.** Variation comes from more than the analyzer. It can come
-from specimen collection and handling (preanalytical factors), instrument imprecision
-(analytical factors), and true within-person fluctuation (biological variation).
+**Where uncertainty comes from.** Variation can come from specimen collection and handling
+(preanalytical factors), instrument imprecision (analytical factors), and true within-person
+fluctuation (biological variation).
 
-**What “reference change value” means.** A standard way to interpret serial tests is to ask:
-“How big does the difference need to be before it’s unlikely to be chance?” This is often
-framed as a reference change value (RCV) based on analytical and within-subject biological
-variation.
+**What reference change value means.** A standard way to interpret serial tests is to ask how large
+a difference must be before it is unlikely to be chance. This is often framed as a reference change
+value based on analytical and within-subject biological variation.
 
-**What this tool does instead.** This tool treats each sodium value as a range of plausible
-true values consistent with the chosen limits of agreement, then derives a distribution for
-the plausible true change (ΔNa), assuming independent random errors. It can also report how
-often a difference this large could occur by chance under “no true change.”
+**What this tool does instead.** This tool treats each sodium value as a range of plausible true
+values consistent with the chosen limits of agreement, then derives a distribution for plausible
+true ΔNa under independent random errors. It also reports how often a difference this large could
+occur by chance under a no-true-change model.
 
-**Caveats.** This tool does not correct for systematic bias between methods or preanalytical
-artifacts unless you explicitly incorporate them into the parameters. Point-of-care devices
-often have larger analytical variation than accredited central laboratory instruments, and
-your local lab’s performance may differ from published estimates.
+**Caveats.** The tool does not correct for systematic bias between methods or preanalytical
+artifacts unless those are explicitly incorporated into the parameters. Point-of-care and central
+laboratory instruments can differ, and local performance may differ from these defaults.
 
-References / further reading: practice pointers on interpreting serial test results provide
-conceptual inspiration, but the math here differs and does not use biologic-variation RCV
-calculations.
+## Validation and CI
 
-## Disclaimer
+Current automated checks verify Python math invariants, calculator JSON contract behavior, default
+file loading, staged browser package consistency, Ruff formatting, and Ruff linting. CI runs these
+checks on push and pull request through `.github/workflows/pre-commit.yml` and
+`.github/workflows/tests.yml`.
 
-This tool is for education and measurement-uncertainty intuition only. It is not medical advice.
+Passing these checks does not establish clinical validation, regulatory clearance, or local
+laboratory calibration.
 
-## How to cite
+## Citation
 
-See `CITATION.cff` or the GitHub “Cite this repository” box.
+Citation metadata are in `CITATION.cff`. GitHub should render this through the repository “Cite
+this repository” control. No DOI is currently assigned.
 
 ## License
 
-See `LICENSE` for terms.
+MIT license. See `LICENSE` for terms.

@@ -28,7 +28,7 @@ An optional "scale σ with Na" toggle assumes constant CV by scaling σ linearly
 relative to a reference value (default 140 mmol/L). This provides an opt-in heteroscedastic
 model without committing to device-specific curves.
 
-## BMJ-style interpretation layer
+## Serial-test interpretation layer
 The app adds a qualitative interpretation label based on the no-change chance probability.
 This is a communication layer only and does not alter the quantitative model.
 

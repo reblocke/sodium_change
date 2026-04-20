@@ -8,6 +8,7 @@
 - CI currently runs pre-commit and pytest workflows.
 - Static-asset tests check that staged browser defaults and package files match the source of truth,
   allowing only the documented browser defaults-path patch.
+- Pre-push hooks run `make test` through pre-commit when installed.
 
 ## Validation Expectations
 
@@ -26,3 +27,9 @@
 
 Passing these gates does not establish clinical validation, local laboratory calibration, or
 regulatory clearance.
+
+## Manual Browser Check
+
+For UI-facing changes, run `make serve`, open `http://127.0.0.1:8000`, and verify that default
+parameters load, calculation completes, and the Results/Distributions sections update without
+console errors.

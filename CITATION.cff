@@ -1,19 +1,19 @@
 cff-version: 1.2.0
 message: If you use this software, please cite it as below.
-title: Project Title
+title: Sodium ΔNa Uncertainty Calculator
 authors:
-  - family-names: Lastname
-    given-names: Firstname
-    orcid: https://orcid.org/0000-0000-0000-0000
+  - family-names: Locke
+    given-names: Brian
 version: 0.1.0
 date-released: 2026-01-05
-doi: 10.0000/placeholder-doi
-url: https://github.com/your-org/your-repo
+url: https://github.com/reblocke/sodium_change
+repository-code: https://github.com/reblocke/sodium_change
 license: MIT
 preferred-citation:
   type: software
-  title: Project Title
+  title: Sodium ΔNa Uncertainty Calculator
   authors:
-    - family-names: Lastname
-      given-names: Firstname
+    - family-names: Locke
+      given-names: Brian
   year: 2026
+  url: https://github.com/reblocke/sodium_change
