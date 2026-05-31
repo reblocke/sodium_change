@@ -222,7 +222,11 @@ MIT license. See `LICENSE` for terms.
 Program to evaluate how likely two sodium values represent a real change
 
 ### Instructions
-Start with this README, then inspect the files listed under Repository Layout. For computational workflows, run commands from the repository root and avoid committing generated outputs unless a release explicitly calls for them.
+Start with this README, then inspect the files listed under Repository Layout. For computational
+workflows, run commands from the repository root and avoid committing incidental generated outputs.
+Exception: when changes to `src/sodium_uncertainty/` or `data/variability_defaults.json` affect
+the browser-facing package or defaults, run `make stage-docs` and include the tracked staged assets
+in `docs/sodium_uncertainty/` and `docs/variability_defaults.json`.
 
 ### Authors, Funding, and Acknowledgments
 Maintainer: Brian W. Locke (`@reblocke`, ORCID 0000-0002-3588-5238). Preserve any project-specific author, funding, and acknowledgment details already listed elsewhere in the repository or accompanying publication.
