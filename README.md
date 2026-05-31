@@ -215,3 +215,55 @@ this repository” control. No DOI is currently assigned.
 ## License
 
 MIT license. See `LICENSE` for terms.
+
+## LLM and Repository Readiness Notes
+
+### Description
+Program to evaluate how likely two sodium values represent a real change
+
+### Instructions
+Start with this README, then inspect the files listed under Repository Layout. For computational
+workflows, run commands from the repository root and avoid committing incidental generated outputs.
+Exception: when changes to `src/sodium_uncertainty/` or `data/variability_defaults.json` affect
+the browser-facing package or defaults, run `make stage-docs` and include the tracked staged assets
+in `docs/sodium_uncertainty/` and `docs/variability_defaults.json`.
+
+### Authors, Funding, and Acknowledgments
+Maintainer: Brian W. Locke (`@reblocke`, ORCID 0000-0002-3588-5238). Preserve any project-specific author, funding, and acknowledgment details already listed elsewhere in the repository or accompanying publication.
+
+### Repository Layout
+- `.Rhistory`
+- `.env.example`
+- `.pre-commit-config.yaml`
+- `AGENTS.md`
+- `CITATION.cff`
+- `CONTRIBUTING.md`
+- `LICENSE`
+- `Makefile`
+- `README.md`
+- `data/.gitkeep`
+- `data/variability_defaults.json`
+- `docs/.nojekyll`
+- `docs/CLINICAL_SCOPE.md`
+- `docs/DECISIONS.md`
+
+### Data and Codebook
+No patient data expected
+
+### Workflow / Script Order
+Run Python smoke checks
+
+### Dependencies / Environment
+Python dependency metadata
+
+### Citation
+No publication DOI is assigned to this repository. Cite the GitHub repository URL and the commit or release used.
+
+### License
+Repository license status: MIT. See the root license file when present. Third-party and publisher materials remain under their original terms.
+
+### Manuscript Status
+No manuscript version expected Code and teaching text owned by repo author
+
+### Contact
+Maintainer: Brian W. Locke (`@reblocke`). Use GitHub issues or pull requests for repository-specific questions when the repository is public.
