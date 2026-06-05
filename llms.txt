@@ -1,0 +1,45 @@
+# Sodium ΔNa Uncertainty Calculator
+
+Repository: https://github.com/reblocke/sodium_change
+Purpose: Program to evaluate how likely two sodium values represent a real change
+Status: No manuscript version is expected. Code and teaching text are repository-authored unless otherwise noted.
+
+## Human-Readable Entry Points
+- `README.md` is the primary human-facing overview.
+- `llms.txt` is a compact machine-readable index and should not replace the README.
+
+## Repository Layout
+- `.Rhistory`
+- `.env.example`
+- `.pre-commit-config.yaml`
+- `AGENTS.md`
+- `CITATION.cff`
+- `CONTRIBUTING.md`
+- `LICENSE`
+- `Makefile`
+- `README.md`
+- `data/.gitkeep`
+- `data/variability_defaults.json`
+- `docs/.nojekyll`
+- `docs/CLINICAL_SCOPE.md`
+- `docs/DECISIONS.md`
+
+## Data and Reuse Boundaries
+No patient data expected
+
+## Workflow
+Run Python smoke checks
+
+## Dependencies
+Python dependency metadata
+
+## Citation
+No publication DOI is assigned to this repository. Cite the GitHub repository URL and the commit or release used.
+
+## License
+MIT License for repository code; see `LICENSE`. Third-party and publisher materials remain under their original terms.
+
+## Agent Cautions
+- Do not re-add a README appendix aimed primarily at LLMs; integrate user-facing details into normal README sections.
+- Keep restricted clinical data, private drafts, publisher PDFs, local paths, and generated outputs out of public documentation unless explicitly reviewed.
+- Prefer concise summaries plus links to citable records over copied manuscript or publisher text.
