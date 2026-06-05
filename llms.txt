@@ -28,7 +28,10 @@ Status: No manuscript version is expected. Code and teaching text are repository
 No patient data expected
 
 ## Workflow
-Run Python smoke checks
+Run workflow commands from the repository root. When changes to `src/sodium_uncertainty/` or
+`data/variability_defaults.json` affect the browser-facing package or defaults, run
+`make stage-docs` and include the tracked staged assets in `docs/sodium_uncertainty/` and
+`docs/variability_defaults.json`. Run `make verify` before committing.
 
 ## Dependencies
 Python dependency metadata
